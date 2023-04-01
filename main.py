@@ -342,6 +342,7 @@ async def get_timer_alt(embed):
             else:
                 embed_value_str_tytani = "Brak timerów tytanów"
                 embed.add_field(name="Tytani:", value=embed_value_str_tytani, inline=False)
+            break
     ws.close()
     return 1
 
