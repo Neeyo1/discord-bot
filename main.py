@@ -300,13 +300,12 @@ async def get_timer_alt(embed):
                 s = ' '.join(word[0].upper() + word[1:] for word in mob.split())
                 if(mob in mob_name_tytan):
                     df_timer_tytani = df_timer_tytani.append({'Mob':s, 'Resp_min':int(resp_min), 'Resp_max':int(resp_max), 'Lvl':int(mob_lvl_tytan[mob])}, ignore_index=True)
-                elif(mob_lvl_heros[mob]):
+                elif(mob in mob_lvl_heros):
                     df_timer_herosi = df_timer_herosi.append({'Mob':s, 'Resp_min':int(resp_min), 'Resp_max':int(resp_max), 'Lvl':int(mob_lvl_heros[mob])}, ignore_index=True)
                 else:
                     df_timer_herosi = df_timer_herosi.append({'Mob':s, 'Resp_min':int(resp_min), 'Resp_max':int(resp_max), 'Lvl':350}, ignore_index=True)
             df_timer_herosi.sort_values(by=['Lvl'], inplace=True)
             df_timer_tytani.sort_values(by=['Lvl'], inplace=True)
-            print("aaa")
             print(df_timer_herosi)
             print(df_timer_tytani)
 
@@ -343,7 +342,6 @@ async def get_timer_alt(embed):
             else:
                 embed_value_str_tytani = "Brak timerów tytanów"
                 embed.add_field(name="Tytani:", value=embed_value_str_tytani, inline=False)
-            break
     ws.close()
     return 1
 
@@ -2223,7 +2221,7 @@ async def online_wykres(ctx: interactions.CommandContext, nickname: str):
 )
 async def timery(ctx: interactions.CommandContext):
     embed=interactions.Embed(title="Timery herosów i tytanów")
-    await get_timer(embed)
+    await get_timer_alt(embed)
     await ctx.send(embeds=embed)
     await save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "timery")
 
