@@ -1040,7 +1040,7 @@ async def players_online_run_forever(swiat):
                 df_players_online_run_forever.loc[df_players_online_run_forever['Nickname'] == nickname, ['Minutes_online']] = int(minutes) + 1
             else:
                 df_players_online_run_forever = df_players_online_run_forever.append({'Nickname':nickname, 'Minutes_online':int(1), 'Account_id':int(account_id), 'Char_id':int(char_id)}, ignore_index=True)
-            if(1):
+            if(int(date_today.hour) <= 7):
                 if(nickname in ros_tanroth):
                     ros_tanroth_count = ros_tanroth_count+1
                 if(nickname in ros_teza):
