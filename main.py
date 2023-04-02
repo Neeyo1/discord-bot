@@ -1,6 +1,7 @@
 #import discord
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.simplefilter(action='ignore', category=DeprecationWarning)
 import requests
 import pandas as pd
 import time
@@ -19,6 +20,7 @@ import matplotlib.pyplot as plt
 from websocket import create_connection
 import json
 from asyncio import sleep
+from PIL import Image, ImageDraw, ImageFont
 #from discord.ext import commands
 import interactions
 from interactions import Button, ButtonStyle, SelectMenu, SelectOption, ClientPresence, StatusType, PresenceActivity, PresenceActivityType, CommandContext, ComponentContext, Modal, TextInput, TextStyleType
@@ -1515,6 +1517,59 @@ async def quiz_sleep(ctx, response_riddles):
             store_quiz_server[ctx.guild.id] = ctx
 
 
+async def generate_image():
+    empty_slots_pos = [
+        [93, 220], [197, 220], [301, 220], [405, 220], [509, 220],
+        [93, 266], [197, 266], [301, 266], [405, 266], [509, 266],
+        [93, 312], [197, 312], [301, 312], [405, 312], [509, 312],
+        [93, 358], [197, 358], [301, 358], [405, 358], [509, 358],
+        [93, 404], [197, 404], [301, 404], [405, 404], [509, 404],
+        [93, 450], [197, 450], [301, 450], [405, 450], [509, 450]
+    ]
+    #myFont = ImageFont.truetype('Roboto-Regular.ttf', 16)
+    image = Image.open("img/random_pick/template.png") 
+    W, H = image.size
+    print(W, H)
+    #image = Image.new('RGB', size, bgColor)
+    draw = ImageDraw.Draw(image)
+
+    myMessage = 'TEST MESSAGE'
+    myFont = ImageFont.truetype("arial.ttf", 35)
+    w, h = draw.textsize(myMessage, font=myFont)
+    x1, y1, x2, y2 = [0, 40, W, 80]
+    x = (x2 - x1 - w)/2 + x1
+    y = (y2 - y1 - h)/2 + y1
+    draw.text((x, y), myMessage, align='center', font=myFont, fill='black')
+
+    myMessage = 'DATE'
+    myFont = ImageFont.truetype("arial.ttf", 25)
+    w, h = draw.textsize(myMessage, font=myFont)
+    x1, y1, x2, y2 = [0, 130, W, 170]
+    x = (x2 - x1 - w)/2 + x1
+    y = (y2 - y1 - h)/2 + y1
+    draw.text((x, y), myMessage, align='center', font=myFont, fill='black')
+
+    for i in range(30):
+        myMessage = str(i + 1)
+        myFont = ImageFont.truetype("arial.ttf", 25)
+        w, h = draw.textsize(myMessage, font=myFont)
+        x1, y1, x2, y2 = [empty_slots_pos[i][0], empty_slots_pos[i][1], empty_slots_pos[i][0] + 104, empty_slots_pos[i][1] + 46]
+        x = (x2 - x1 - w)/2 + x1
+        y = (y2 - y1 - h)/2 + y1
+        draw.text((x, y), myMessage, align='center', font=myFont, fill='black')
+
+        myFont = ImageFont.truetype("arial.ttf", 15)
+        w, h = draw.textsize(myMessage, font=myFont)
+        x1, y1, x2, y2 = [empty_slots_pos[i][0], empty_slots_pos[i][1], empty_slots_pos[i][0] + 20, empty_slots_pos[i][1] + 20]
+        x = (x2 - x1 - w)/2 + x1
+        y = (y2 - y1 - h)/2 + y1
+        draw.text((x, y), myMessage, align='center', font=myFont, fill='black')
+        draw.rectangle([x1, y1, x2, y2], outline = 'black')
+
+    image.save('img/random_pick/test.png', "PNG")
+    #return image
+
+
 async def save_logs(guild_id, user_id, nickname, hash_code, command):
     current_daytime = dt.now().strftime("%Y-%m-%d %H:%M:%S")
     #async with aiofiles.open('logs.txt', mode='w') as f:
@@ -2842,5 +2897,16 @@ async def button_response(ctx):
 
     else:
         await ctx.send("Żaden quiz nie jest obecnie aktywny", ephemeral=True)
+
+
+@bot.command(
+    name="generuj_obrazek",
+    description="Generuje obrazek z wynikami losowania",
+    scope= [
+        dc_discord_bot_testy,
+    ],
+)
+async def generuj_obrazek(ctx: interactions.CommandContext):
+    await generate_image()
 
 bot.start()
