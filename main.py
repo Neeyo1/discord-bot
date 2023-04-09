@@ -1338,4 +1338,17 @@ async def button_response(ctx):
 async def generuj_obrazek(ctx: interactions.CommandContext):
     await u.generate_image()
 
+
+@bot.command(
+    name="konkurs",
+    description="Wyniki konkursu Łowcy herosów",
+    scope= [
+        sd.dc_discord_bot_testy,
+    ],
+)
+async def konkurs(ctx: interactions.CommandContext):
+    embed=interactions.Embed(title="Wyniki konkursu Łowcy herosów")
+    await u.get_google_sheets_data(ctx, embed)
+    await ctx.send(embeds=embed)
+
 bot.start()

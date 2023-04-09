@@ -7,6 +7,7 @@ import time
 import sqlite3
 import datetime
 import random
+import os.path
 from unidecode import unidecode
 from datetime import datetime as dt
 from bs4 import BeautifulSoup
@@ -26,6 +27,12 @@ from interactions import Button, ButtonStyle, SelectMenu, SelectOption, ClientPr
 from interactions.ext.paginator import Page, Paginator
 from interactions.ext.files import command_send
 from interactions.ext.tasks import IntervalTrigger, create_task
+
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
 import secret_data as sd
 import global_variables as g
@@ -82,10 +89,10 @@ async def get_timer(embed):
             if(resp_min > 1000000 or resp_max > 1000000):
                 continue
 
-            if(mob in sd.mob_name_tytan):
-                df_timer_tytani = df_timer_tytani.append({'Mob':mob, 'Resp_min':int(resp_min), 'Resp_max':int(resp_max), 'Lvl':int(sd.mob_lvl_tytan[mob])}, ignore_index=True)
-            elif(sd.mob_lvl_heros[mob]):
-                df_timer_herosi = df_timer_herosi.append({'Mob':mob, 'Resp_min':int(resp_min), 'Resp_max':int(resp_max), 'Lvl':int(sd.mob_lvl_heros[mob])}, ignore_index=True)
+            if(mob in g.mob_name_tytan):
+                df_timer_tytani = df_timer_tytani.append({'Mob':mob, 'Resp_min':int(resp_min), 'Resp_max':int(resp_max), 'Lvl':int(g.mob_lvl_tytan[mob])}, ignore_index=True)
+            elif(g.mob_lvl_heros[mob]):
+                df_timer_herosi = df_timer_herosi.append({'Mob':mob, 'Resp_min':int(resp_min), 'Resp_max':int(resp_max), 'Lvl':int(g.mob_lvl_heros[mob])}, ignore_index=True)
             else:
                 df_timer_herosi = df_timer_herosi.append({'Mob':mob, 'Resp_min':int(resp_min), 'Resp_max':int(resp_max), 'Lvl':350}, ignore_index=True)
 
@@ -179,10 +186,10 @@ async def get_timer_alt(embed):
 
                 #print(mob, resp_min, resp_max)
                 s = ' '.join(word[0].upper() + word[1:] for word in mob.split())
-                if(mob in sd.mob_name_tytan):
-                    df_timer_tytani = df_timer_tytani.append({'Mob':s, 'Resp_min':int(resp_min), 'Resp_max':int(resp_max), 'Lvl':int(sd.mob_lvl_tytan[mob])}, ignore_index=True)
-                elif(mob in sd.mob_lvl_heros):
-                    df_timer_herosi = df_timer_herosi.append({'Mob':s, 'Resp_min':int(resp_min), 'Resp_max':int(resp_max), 'Lvl':int(sd.mob_lvl_heros[mob])}, ignore_index=True)
+                if(mob in g.mob_name_tytan):
+                    df_timer_tytani = df_timer_tytani.append({'Mob':s, 'Resp_min':int(resp_min), 'Resp_max':int(resp_max), 'Lvl':int(g.mob_lvl_tytan[mob])}, ignore_index=True)
+                elif(mob in g.mob_lvl_heros):
+                    df_timer_herosi = df_timer_herosi.append({'Mob':s, 'Resp_min':int(resp_min), 'Resp_max':int(resp_max), 'Lvl':int(g.mob_lvl_heros[mob])}, ignore_index=True)
                 else:
                     df_timer_herosi = df_timer_herosi.append({'Mob':s, 'Resp_min':int(resp_min), 'Resp_max':int(resp_max), 'Lvl':350}, ignore_index=True)
             df_timer_herosi.sort_values(by=['Lvl'], inplace=True)
@@ -1456,3 +1463,48 @@ async def save_logs(guild_id, user_id, nickname, hash_code, command):
     f = open("logs.txt", "a")
     f.write(str(guild_id) + " | " + str(user_id) + "(" + nickname + "#" + str(hash_code) + ") | " + command + " | " + current_daytime + "\n")
     f.close()
+
+
+async def get_google_sheets_data(ctx, embed):
+    SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+    creds = None
+    if(os.path.exists('token.json')):
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    if(not creds or not creds.valid):
+        if(creds and creds.expired and creds.refresh_token):
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
+
+    try:
+        service = build('sheets', 'v4', credentials=creds)
+        sheet = service.spreadsheets()
+        result = sheet.values().get(spreadsheetId=sd.SPREADSHEET_ID, range="B7:H30").execute()
+        values = result.get('values', [])
+
+        if(not values):
+            embed.add_field(name="Wystąpił błąd", value="Nie mozna odczytac danych", inline=False)
+            return
+        
+        embed_str = ""
+        embed_last_update = ""
+
+        for row in values:
+            if(len(row) == 0):
+                continue
+            if(len(row) >= 2 and row[2] == '-'):
+                break
+            elif(len(row) >= 2 and row[2] == 'Gracz'):
+                continue
+            elif("Ostatnia aktualizacja" in row[0]):
+                embed_last_update = row[0]
+            else:
+                embed_str = embed_str + row[0] + ". " + row[2] + ": " + row[4] + "pkt, " + row[6] + "RN\n"
+            print(row)
+        embed_str = embed_str[:-1]
+        embed.add_field(name=embed_last_update, value=embed_str, inline=False)
+    except HttpError as err:
+        print(err)
