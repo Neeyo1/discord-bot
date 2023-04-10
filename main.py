@@ -1344,6 +1344,7 @@ async def generuj_obrazek(ctx: interactions.CommandContext):
     description="Wyniki konkursu Łowcy herosów",
     scope= [
         sd.dc_discord_bot_testy,
+        sd.dc_bod
     ],
 )
 async def konkurs(ctx: interactions.CommandContext):
