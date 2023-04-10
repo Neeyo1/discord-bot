@@ -1506,5 +1506,6 @@ async def get_google_sheets_data(ctx, embed):
             print(row)
         embed_str = embed_str[:-1]
         embed.add_field(name=embed_last_update, value=embed_str, inline=False)
+        embed.url = "https://docs.google.com/spreadsheets/d/" + sd.SPREADSHEET_ID
     except HttpError as err:
         print(err)
