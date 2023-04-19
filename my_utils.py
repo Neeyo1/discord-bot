@@ -15,10 +15,12 @@ import time
 import aiofiles
 import asyncio
 import matplotlib.pyplot as plt
+from html2image import Html2Image
 #import socketio
 #import websockets
 from websocket import create_connection
 import json
+import math
 from asyncio import sleep
 from PIL import Image, ImageDraw, ImageFont
 #from discord.ext import commands
@@ -1509,3 +1511,336 @@ async def get_google_sheets_data(ctx, embed):
         embed.url = "https://docs.google.com/spreadsheets/d/" + sd.SPREADSHEET_ID
     except HttpError as err:
         print(err)
+
+
+async def generate_image_from_html(link, lvl):
+    hti = Html2Image()
+
+    respond = requests.get(link)
+    soup = BeautifulSoup(respond.text, 'html.parser')
+    data = str(soup.find('div', class_='item item-tip-')['data-stat'])
+    datatemp = str(soup.find('div', class_='item item-tip-'))
+    print(datatemp)
+    data = data.split(";")
+    item_name = str(soup.find('div', class_='item item-tip-')['data-name'])
+    print(data)
+
+    data_dict = {}
+    for i in data:
+        if "rarity=" in i:
+            data_dict['item_rarity'] = i[7:]
+            continue
+        if "resfire=" in i:
+            data_dict['item_res_fire'] = i[8:]
+            continue
+        elif "fire=" in i:
+            data_dict['item_fire_dmg'] = i[5:]
+            continue
+        if "da=" in i:
+            data_dict['item_wc'] = i[3:]
+            continue
+        if "manabon=" in i:
+            data_dict['item_mana'] = i[8:]
+            continue
+        if "sa=" in i:
+            data_dict['item_sa'] = i[3:]
+            continue
+        if "lvl=" in i:
+            data_dict['item_lvl'] = i[4:]
+            continue
+        if "reqp=" in i:
+            data_dict['item_prof'] = i[5:]
+            continue
+        if "contra=" in i:
+            data_dict['item_contra'] = i[7:]
+            continue
+        if "resfrost=" in i:
+            data_dict['item_res_frost'] = i[9:]
+            continue
+        elif "frost=" in i:
+            data_temp = i[6:].split(",")
+            data_dict['item_frost_slow'] = data_temp[0]
+            data_dict['item_frost_dmg'] = data_temp[1]
+            continue
+        if "resdmg=" in i:
+            data_dict['item_res'] = i[7:]
+            continue
+        elif "acdmg=" in i:
+            data_dict['item_low_ac'] = i[6:]
+            continue
+        elif "dmg=" in i:
+            data_dict['item_dmg'] = i[4:]
+            continue
+        if "dz=" in i:
+            data_dict['item_zr'] = i[3:]
+            continue
+        if "hp=" in i:
+            data_dict['item_hp'] = i[3:]
+            continue
+        if "act=" in i:
+            data_dict['item_res_poison'] = i[4:]
+            continue
+        if "poison=" in i:
+            data_temp = i[7:].split(",")
+            data_dict['item_poison_slow'] = data_temp[0]
+            data_dict['item_poison_dmg'] = data_temp[1]
+            continue
+        if "lowcrit=" in i:
+            data_dict['item_low_crit'] = i[8:]
+            continue
+        elif "crit=" in i:
+            data_dict['item_crit'] = i[5:]
+            continue
+        if "critmval=" in i:
+            data_dict['item_crit_m_val'] = i[9:]
+            continue
+        if "heal=" in i:
+            data_dict['item_heal'] = i[5:]
+            continue
+        if "reslight=" in i:
+            data_dict['item_res_light'] = i[9:]
+            continue
+        elif "light=" in i:
+            data_dict['item_light_dmg'] = i[6:]
+            continue
+        if "critval=" in i:
+            data_dict['item_crit_val'] = i[8:]
+            continue
+        if "energybon=" in i:
+            data_dict['item_energy'] = i[10:]
+            continue
+        if "lowevade=" in i:
+            data_dict['item_low_evade'] = i[9:]
+            continue
+        elif "evade=" in i:
+            data_dict['item_evade'] = i[6:]
+            continue
+        if "absorb=" in i:
+            data_dict['item_absorb'] = i[7:]
+            continue
+        if "absorbm=" in i:
+            data_dict['item_absorb_m'] = i[8:]
+            continue
+        if "ac=" in i:
+            data_dict['item_ac'] = i[3:]
+            continue
+        if "di=" in i:
+            data_dict['item_int'] = i[3:]
+            continue
+        if "heal=" in i:
+            data_dict['item_heal'] = i[5:]
+            continue
+        if "endest=" in i:
+            data_dict['item_low_energy'] = i[7:]
+            continue
+        if "manadest=" in i:
+            data_dict['item_low_mana'] = i[9:]
+            continue
+        if "ds=" in i:
+            data_dict['item_str'] = i[3:]
+            continue
+        if "hpbon=" in i:
+            data_dict['item_hp_bon'] = i[6:]
+            continue
+        if "blok=" in i:
+            data_dict['item_blok'] = i[5:]
+            continue
+        if "pierceb=" in i:
+            data_dict['item_pierceb'] = i[8:]
+            continue
+        if "wound=" in i:
+            data_temp = i[6:].split(",")
+            data_dict['item_wound_chance'] = data_temp[0]
+            data_dict['item_wound_dmg'] = data_temp[1]
+            continue
+    
+    print(data_dict)
+
+    html_page = '<div class="item-tip tip t_item"><b class="item-name">' + item_name + '</b>'
+    if 'item_rarity' in data_dict:
+        html_page = html_page + '<b class="' + data_dict['item_rarity'] + '"><br/>* ' + data_dict['item_rarity'] + ' *</b>'
+    if 'item_dmg' in data_dict:
+        html_page = html_page + '<br/>Atak: ' + data_dict['item_dmg']
+    if 'item_fire_dmg' in data_dict:
+        html_page = html_page + '<br/>Obrażenia od ognia: ~' + data_dict['item_fire_dmg']
+    if 'item_frost_dmg' in data_dict:
+        html_page = html_page + '<br/>Obrażenia od zimna: +' + data_dict['item_frost_dmg']
+    if 'item_frost_slow' in data_dict:
+        html_page = html_page + '<br/>oraz spowalnia cel o ' + str(0.01 * int(data_dict['item_frost_slow'])) + ' SA'
+    if 'item_light_dmg' in data_dict:
+        html_page = html_page + '<br/>Obrażenia od błyskawic: ' + data_dict['item_light_dmg']
+    if 'item_poison_dmg' in data_dict:
+        html_page = html_page + '<br/>Obrażenia od trucizny: +' + data_dict['item_poison_dmg']
+    if 'item_poison_slow' in data_dict:
+        html_page = html_page + '<br/>oraz spowalnia cel o ' + str(0.01 * int(data_dict['item_poison_slow'])) + ' SA'    
+    if 'item_contra' in data_dict:
+        html_page = html_page + '<br/+'  + data_dict['item_contra'] + '% szans na kontrę po krytyku'
+    if 'item_ac' in data_dict:
+        html_page = html_page + '<br/>Pancerz: ' + data_dict['item_ac']
+    if 'item_res_poison' in data_dict:
+        html_page = html_page + '<br/>Odporność na truciznę +' + data_dict['item_res_poison'] + '%'
+    if 'item_res_fire' in data_dict:
+        html_page = html_page + '<br/>Odporność na ogień +' + data_dict['item_res_fire'] + '%'
+    if 'item_res_frost' in data_dict:
+        html_page = html_page + '<br/>Odporność na zimno +' + data_dict['item_res_frost'] + '%'
+    if 'item_res_light' in data_dict:
+        html_page = html_page + '<br/>Odporność na błyskawice +' + data_dict['item_res_light'] + '%'
+    if 'item_absorb' in data_dict:
+        html_page = html_page + '<br/>Absorbuje do ' + data_dict['item_absorb'] + ' obrażeń fizycznych'
+    if 'item_absorb_m' in data_dict:
+        html_page = html_page + '<br/>Absorbuje do ' + data_dict['item_absorb_m'] + ' obrażeń magicznych'
+    if 'item_blok' in data_dict:
+        html_page = html_page + '<br/>Blok: +' + data_dict['item_blok']
+    if 'item_low_ac' in data_dict:
+        html_page = html_page + '<br/>Niszczy ' + data_dict['item_low_ac'] +' punktów pancerza podczas ciosu'  
+    if 'item_crit' in data_dict:
+        html_page = html_page + '<br/>Cios krtytyczny: +' + data_dict['item_crit'] + '%'
+    if 'item_crit_val' in data_dict:
+        html_page = html_page + '<br/>Siła krytyka fizycznego: +' + data_dict['item_crit_val'] + '%'
+    if 'item_crit_m_val' in data_dict:
+        html_page = html_page + '<br/>Siła krytyka magicznego: +' + data_dict['item_crit_m_val'] + '%'
+    if 'item_wc' in data_dict:
+        html_page = html_page + '<br/>Wszystkie cechy: +' + data_dict['item_wc']
+    if 'item_str' in data_dict:
+        html_page = html_page + '<br/>Siła: +' + data_dict['item_str']
+    if 'item_zr' in data_dict:
+        html_page = html_page + '<br/>Zręczność: +' + data_dict['item_zr']
+    if 'item_int' in data_dict:
+        html_page = html_page + '<br/>Intelekt: +' + data_dict['item_int']
+    if 'item_heal' in data_dict:
+        html_page = html_page + '<br/>Przywraca ' + data_dict['item_heal'] + ' punktów życia podczas walki'
+    if 'item_low_crit' in data_dict:
+        html_page = html_page + '<br/>Podczas obrony szansa na cios krytyczny przeciwnika jest mniejsza o ' + data_dict['item_low_crit'] + ' punkty procentowe'    
+    if 'item_energy' in data_dict:
+        html_page = html_page + '<br/>Energia: +' + data_dict['item_energy']
+    if 'item_mana' in data_dict:
+        html_page = html_page + '<br/>Mana: +' + data_dict['item_mana']
+    if 'item_low_energy' in data_dict:
+        html_page = html_page + '<br/>Podczas obrony niszczy ' + data_dict['item_low_energy'] + ' energii'
+    if 'item_evade' in data_dict:
+        html_page = html_page + '<br/>Unik: +' + data_dict['item_evade']
+    if 'item_hp' in data_dict:
+        html_page = html_page + '<br/>Życie: +' + data_dict['item_hp']
+    if 'item_hp_bon' in data_dict:
+        html_page = html_page + '<br/>+' + data_dict['item_hp_bon'] + ' życia za 1 pkt siły'  
+    if 'item_low_evade' in data_dict:
+        html_page = html_page + '<br/>Podczas ataku unik przeciwnika jest mniejszy o ' + data_dict['item_low_evade']
+    if 'item_low_mana' in data_dict:
+        html_page = html_page + '<br/>Podczas obrony niszczy ' + data_dict['item_low_mana'] + ' many'  
+    if 'item_pierceb' in data_dict:
+        html_page = html_page + '<br/>' + data_dict['item_pierceb'] + ' szans na zablokowanie przebicia'    
+    if 'item_sa' in data_dict:
+        html_page = html_page + '<br/>SA: +' + str(round(0.01 * int(data_dict['item_sa']), 2))
+    if 'item_res' in data_dict:
+        html_page = html_page + '<br/>Niszczenie odporności magicznych o ' + data_dict['item_res'] + '% podczas ciosu'
+    if 'item_wound_dmg' in data_dict:
+        html_page = html_page + '<br/>Głęboka rana, ' + data_dict['item_wound_chance'] + '% szans na +' + data_dict['item_wound_dmg'] + 'obrażeń'
+    if 'item_lvl' in data_dict:
+        html_page = html_page + '<br/>Wymagany poziom: ' + data_dict['item_lvl']
+    if 'item_prof' in data_dict:
+        html_page = html_page + '<br/>Wymagana profesja: ' + data_dict['item_prof']
+    html_page = html_page + '</div>'
+
+    #await pancerz(data_dict['item_prof'], data_dict['item_type'], data_dict['item_rarity'], int(data_dict['item_lvl']), lvl)
+    await pancerz(data_dict)
+
+    #html_page = '<div class="item-tip tip t_item"><b class="item-name">Trupia torba III</b><b class="legendary">* legendarny *</b><span class="type-text">Typ:  Torby</span><br>Mieści 42 przedmioty<br>Nieznany stat: rarity<br><i class="idesc">Nie ma dziur, materiał też niczego sobie... Chyba tobie bardziej się przyda niż umarłym.<br><br>Halloween 2022 r.</i>Wartość: 10</div>'
+    #first_br = html_page.find("*")
+    #second_br = html_page.find("Typ")
+    #third_br = html_page.find("Wartość")
+    #html = html_page[:first_br] + '<br/>' + html_page[first_br:second_br] + '<br/>' + html_page[second_br:third_br] + '<br/>' + html_page[third_br:]
+    #html = '<html><head></head><body>' + html_page + '</body></html>'
+    css = 'body {color: #839496; background: #121620;}'
+    hti.screenshot(html_str=html_page, css_str=css, save_as='page.png')
+
+
+async def set_p_and_r(type, rarity):
+    if type == 'tarcza':
+        p = 0.75
+    elif type == 'helm':
+        p = 0.33
+    elif type == 'buty':
+        p = 0.3
+    elif type == 'rekawice':
+        p = 0.25
+    else:
+        p = 1
+
+    if rarity == 'normal':
+        r = 0
+    elif rarity == 'unique':
+        r = 1
+    elif rarity == 'enhanced':
+        r = 2
+    elif rarity == 'heroic':
+        r = 2
+    elif rarity == 'legendary':
+        r = 3
+    elif rarity == 'artefact':
+        r = 4
+    
+    return p, r
+
+async def pancerz(data_dict):
+    prof = data_dict['item_prof']
+    type = 'rekawice'
+    rarity = 'legendary'
+    lvl = int(data_dict['item_lvl'])
+    upgrade_lvl = 5
+
+    p, r = set_p_and_r(type, rarity)
+
+    if prof == 'w':
+        c = 1.4
+    elif prof == 'p':
+        c = 1.0
+    elif prof == 'b':
+        c = 0.9
+    elif prof == 'm':
+        c = 0.5
+    elif prof == 't':
+        c = 0.7
+    elif prof == 'h':
+        c = 0.8
+    elif all([x in prof for x in ['w', 'p', 'b', 'm', 't', 'h']]):
+        c = 0.9
+    elif all([x in prof for x in ['p', 'm', 't']]):
+        c = 0.75
+    elif all([x in prof for x in ['b', 't', 'h']]):
+        c = 0.8
+    elif all([x in prof for x in ['w', 'p']]):
+        c = 1.2
+    elif all([x in prof for x in ['w', 'b']]):
+        c = 1.15
+    elif all([x in prof for x in ['p', 't']]):
+        c = 0.85
+    elif all([x in prof for x in ['p', 'm']]):
+        c = 0.75
+    elif all([x in prof for x in ['b', 'h']]):
+        c = 0.85
+    elif all([x in prof for x in ['m', 't']]):
+        c = 0.6
+    elif all([x in prof for x in ['t', 'h']]):
+        c = 0.75
+    else:
+        c= 1
+    
+    x_before = lvl
+    R_before = x_before*x_before + (130 + math.ceil(10*r/3))*x_before + (130 + 390*r)
+    pancerz_before = round(0.02 * p * c * R_before)
+
+    x_after = lvl + upgrade_lvl * round(0.03 * lvl)
+    R_after = x_after*x_after + (130 + math.ceil(10*r/3))*x_after + (130 + 390*r)
+    pancerz_after = round(0.02 * p * c * R_after)
+
+    if pancerz_before == int(data_dict['item_ac']):
+        print(pancerz_after)
+    else:
+        pancerz_addictional_before = int(data_dict['item_ac']) - pancerz_before
+        for i in range(10):
+            pancerz_temp = round(0.003 * i * p * (x_before * x_before + 130 * x_before))
+            if pancerz_temp == pancerz_addictional_before:
+                n = i
+                break
+        pancerz_addictional_after = round(0.003 * n * p * (x_after * x_after + 130 * x_after))
+        print(pancerz_after + pancerz_addictional_after)

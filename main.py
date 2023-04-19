@@ -1352,4 +1352,29 @@ async def konkurs(ctx: interactions.CommandContext):
     await u.get_google_sheets_data(ctx, embed)
     await ctx.send(embeds=embed)
 
+
+@bot.command(
+    name="hti",
+    description="HTML to image",
+    scope= [
+        sd.dc_discord_bot_testy
+    ],
+    options = [
+        interactions.Option(
+            type=interactions.OptionType.STRING,
+            name="link",
+            description="Link do przedmiotu ze strony margohelp.pl",
+            required=True,
+        ),
+        interactions.Option(
+            type=interactions.OptionType.INTEGER,
+            name="poziom",
+            description="Poziom na który ulepszyć przedmiot",
+            required=True,
+        ),
+    ],
+)
+async def hti(ctx: interactions.CommandContext, link: str, poziom: int):
+    await u.generate_image_from_html(link, poziom)
+
 bot.start()
