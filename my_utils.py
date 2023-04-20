@@ -1742,7 +1742,10 @@ async def generate_image_from_html(link, lvl):
     html_page = html_page + '</div>'
 
     #await pancerz(data_dict['item_prof'], data_dict['item_type'], data_dict['item_rarity'], int(data_dict['item_lvl']), lvl)
-    await pancerz(data_dict)
+    await symulator_pancerz(data_dict)
+    #await symulator_unik(data_dict)
+    await symulator_abs_fiz(data_dict)
+    await symulator_abs_mag(data_dict)
 
     #html_page = '<div class="item-tip tip t_item"><b class="item-name">Trupia torba III</b><b class="legendary">* legendarny *</b><span class="type-text">Typ:  Torby</span><br>Mieści 42 przedmioty<br>Nieznany stat: rarity<br><i class="idesc">Nie ma dziur, materiał też niczego sobie... Chyba tobie bardziej się przyda niż umarłym.<br><br>Halloween 2022 r.</i>Wartość: 10</div>'
     #first_br = html_page.find("*")
@@ -1754,7 +1757,7 @@ async def generate_image_from_html(link, lvl):
     hti.screenshot(html_str=html_page, css_str=css, save_as='page.png')
 
 
-async def set_p_and_r(type, rarity):
+def set_variables(type, rarity, lvl, upgrade_lvl):
     if type == 'tarcza':
         p = 0.75
     elif type == 'helm':
@@ -1764,7 +1767,7 @@ async def set_p_and_r(type, rarity):
     elif type == 'rekawice':
         p = 0.25
     else:
-        p = 1
+        p = 1.0
 
     if rarity == 'normal':
         r = 0
@@ -1778,17 +1781,23 @@ async def set_p_and_r(type, rarity):
         r = 3
     elif rarity == 'artefact':
         r = 4
-    
-    return p, r
 
-async def pancerz(data_dict):
+    x_before = lvl
+    R_before = x_before*x_before + (130 + math.ceil(10*r/3))*x_before + (130 + 390*r)
+
+    x_after = lvl + upgrade_lvl * round(0.03 * lvl)
+    R_after = x_after*x_after + (130 + math.ceil(10*r/3))*x_after + (130 + 390*r)
+    
+    return p, r, x_before, R_before, x_after, R_after
+
+async def symulator_pancerz(data_dict):
     prof = data_dict['item_prof']
-    type = 'rekawice'
+    type = 'zbroja'
     rarity = 'legendary'
     lvl = int(data_dict['item_lvl'])
     upgrade_lvl = 5
 
-    p, r = set_p_and_r(type, rarity)
+    p, r, x_before, R_before, x_after, R_after = set_variables(type, rarity, lvl, upgrade_lvl)
 
     if prof == 'w':
         c = 1.4
@@ -1823,14 +1832,10 @@ async def pancerz(data_dict):
     elif all([x in prof for x in ['t', 'h']]):
         c = 0.75
     else:
-        c= 1
+        c= 1.0
     
-    x_before = lvl
-    R_before = x_before*x_before + (130 + math.ceil(10*r/3))*x_before + (130 + 390*r)
     pancerz_before = round(0.02 * p * c * R_before)
-
-    x_after = lvl + upgrade_lvl * round(0.03 * lvl)
-    R_after = x_after*x_after + (130 + math.ceil(10*r/3))*x_after + (130 + 390*r)
+    print(pancerz_before)
     pancerz_after = round(0.02 * p * c * R_after)
 
     if pancerz_before == int(data_dict['item_ac']):
@@ -1839,8 +1844,122 @@ async def pancerz(data_dict):
         pancerz_addictional_before = int(data_dict['item_ac']) - pancerz_before
         for i in range(10):
             pancerz_temp = round(0.003 * i * p * (x_before * x_before + 130 * x_before))
+            print(pancerz_temp)
             if pancerz_temp == pancerz_addictional_before:
                 n = i
                 break
         pancerz_addictional_after = round(0.003 * n * p * (x_after * x_after + 130 * x_after))
         print(pancerz_after + pancerz_addictional_after)
+
+async def symulator_abs_fiz(data_dict):
+    prof = data_dict['item_prof']
+    type = 'zbroja'
+    rarity = 'legendary'
+    lvl = int(data_dict['item_lvl'])
+    upgrade_lvl = 5
+
+    p, r, x_before, R_before, x_after, R_after = set_variables(type, rarity, lvl, upgrade_lvl)
+
+    if prof == 'm':
+        c = 6.0
+    if prof == 't':
+        c = 4.0
+    elif all([x in prof for x in ['p', 'm', 't']]):
+        c = 3.4
+    elif all([x in prof for x in ['p', 'm']]):
+        c = 3.0
+    elif all([x in prof for x in ['m', 't']]):
+        c = 5.0
+    else:
+        c = 0
+    
+    if(type in ['zbroja', 'tarcza', 'helm', 'rekawice', 'buty']):
+        value_base_before = round(0.01 * p * c * R_before)
+        value_base_after = round(0.01 * p * c * R_after)
+    else:
+        value_base_before = 0
+        value_base_after = 0
+
+    if value_base_before == int(data_dict['item_absorb']):
+        print(value_base_after)
+    else:
+        value_addictional_before = int(data_dict['item_absorb']) - value_base_before
+        for n in range(10):
+            value_temp = round(0.12 * n * (x_before * x_before + 130 * x_before))
+            if value_temp == value_addictional_before:
+                value_addictional_after = round(0.12 * n * (x_after * x_after + 130 * x_after))
+                break
+        print(value_base_after + value_addictional_after)
+    
+async def symulator_abs_mag(data_dict):
+    prof = data_dict['item_prof']
+    type = 'zbroja'
+    rarity = 'legendary'
+    lvl = int(data_dict['item_lvl'])
+    upgrade_lvl = 5
+
+    p, r, x_before, R_before, x_after, R_after = set_variables(type, rarity, lvl, upgrade_lvl)
+
+    if prof == 'm':
+        c = 6.0
+    if prof == 't':
+        c = 4.0
+    elif all([x in prof for x in ['p', 'm', 't']]):
+        c = 3.4
+    elif all([x in prof for x in ['p', 'm']]):
+        c = 3.0
+    elif all([x in prof for x in ['m', 't']]):
+        c = 5.0
+    else:
+        c = 0
+    
+    if(type in ['zbroja', 'tarcza', 'helm', 'rekawice', 'buty']):
+        value_base_before = round(0.005 * p * c * R_before)
+        value_base_after = round(0.005 * p * c * R_after)
+    else:
+        value_base_before = 0
+        value_base_after = 0
+
+    if value_base_before == int(data_dict['item_absorb_m']):
+        print(value_base_after)
+    else:
+        value_addictional_before = int(data_dict['item_absorb_m']) - value_base_before
+        for n in range(10):
+            value_temp = round(0.12 * n * (x_before * x_before + 130 * x_before))
+            if value_temp == value_addictional_before:
+                value_addictional_after = round(0.12 * n * (x_after * x_after + 130 * x_after))
+                break
+        print(value_base_after + value_addictional_after)
+
+async def symulator_unik(data_dict):
+    prof = data_dict['item_prof']
+    type = 'zbroja'
+    rarity = 'legendary'
+    lvl = int(data_dict['item_lvl'])
+    upgrade_lvl = 5
+
+    p, r, x_before, R_before, x_after, R_after = set_variables(type, rarity, lvl, upgrade_lvl)
+
+    if prof == 'b':
+        c = 1
+    else:
+        c = 0
+    
+    if(type == 'zbroja'):
+        unik_base_before = round(1/3 * c * x_before)
+        unik_base_after = round(1/3 * c * x_after)
+    else:
+        unik_base_before = 0
+        unik_base_after = 0
+
+    if unik_base_before == int(data_dict['item_evade']):
+        print(unik_base_after)
+    else:
+        unik_addictional_before = int(data_dict['item_evade']) - unik_base_before
+        for i in range(10):
+            unik_temp = round(0.1 * i * x_before)
+            if unik_temp == unik_addictional_before:
+                n = i
+                break
+        unik_addictional_after = round(0.1 * n * x_after)
+        print(unik_base_after + unik_addictional_after)
