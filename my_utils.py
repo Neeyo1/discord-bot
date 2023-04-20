@@ -144,16 +144,16 @@ async def add_timer(ctx, mob_name):
     #global sd.groove_headers, sd.groove_cookies
     groove_cookie_string = "; ".join([str(x)+"="+str(y) for x,y in sd.groove_cookies.items()])
 
-    if(int(ctx.author.user.id) == 349851438228439040 or int(ctx.author.user.id) == 372381114809188362):
-        try:
-            ws = create_connection(sd.groove_websocket, header = sd.groove_headers, cookie = groove_cookie_string)
-            ws.send('42' + json.dumps(["data",{"name":mob_name,"action":"addhottimer","clan":"blade_of_destiny_narwhals","clanID":1834,"aid":"5897579"}]))
-            ws.close()
-            return 1
-        except:
-            return 3
-    else:
-        return 2
+    #if(int(ctx.author.user.id) == 349851438228439040 or int(ctx.author.user.id) == 372381114809188362):
+    try:
+        ws = create_connection(sd.groove_websocket, header = sd.groove_headers, cookie = groove_cookie_string)
+        ws.send('42' + json.dumps(["data",{"name":mob_name,"action":"addhottimer","clan":"blade_of_destiny_narwhals","clanID":1834,"aid":"5897579"}]))
+        ws.close()
+        return 1
+    except:
+        return 3
+    #else:
+    #    return 2
     
 
 async def get_timer_alt(embed):
@@ -930,7 +930,7 @@ async def players_online_run_forever(swiat):
                 g.df_players_online_run_forever.loc[g.df_players_online_run_forever['Nickname'] == nickname, ['Minutes_online']] = int(minutes) + 1
             else:
                 g.df_players_online_run_forever = g.df_players_online_run_forever.append({'Nickname':nickname, 'Minutes_online':int(1), 'Account_id':int(account_id), 'Char_id':int(char_id)}, ignore_index=True)
-            if(int(date_today.hour) <= 7):
+            if(True):
                 if(nickname in g.ros_tanroth):
                     ros_tanroth_count = ros_tanroth_count+1
                 if(nickname in g.ros_teza):
