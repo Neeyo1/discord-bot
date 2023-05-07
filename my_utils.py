@@ -1963,3 +1963,11 @@ async def symulator_unik(data_dict):
                 break
         unik_addictional_after = round(0.1 * n * x_after)
         print(unik_base_after + unik_addictional_after)
+
+
+async def follow_posts(link):
+    odpowiedz = requests.get(link)
+    soup = BeautifulSoup(odpowiedz.text, 'html.parser')
+    table = soup.find('table', id_='posts')
+    table = soup.find('tbody')
+    print(table)

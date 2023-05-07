@@ -1377,4 +1377,23 @@ async def konkurs(ctx: interactions.CommandContext):
 async def hti(ctx: interactions.CommandContext, link: str, poziom: int):
     await u.generate_image_from_html(link, poziom)
 
+
+@bot.command(
+    name="posty",
+    description="Posty",
+    scope= [
+        sd.dc_discord_bot_testy,
+    ],
+    options = [
+        interactions.Option(
+            type=interactions.OptionType.STRING,
+            name="link",
+            description="Link",
+            required=True,
+        ),
+    ]
+)
+async def posty(ctx: interactions.CommandContext, link: str):
+    await u.follow_posts(link)
+
 bot.start()
