@@ -25,7 +25,7 @@ async def on_start():
     except:
         g.channel_quiz = await interactions.get(bot, interactions.Channel, object_id=1085193552864235591)
     my_task.start()
-    #look_for_new_item.start()
+    look_for_new_item.start()
 
 
 @bot.command(
@@ -1430,5 +1430,21 @@ async def nowe_itemy(ctx: interactions.CommandContext, link: str):
 )
 async def e2_lista(ctx: interactions.CommandContext):
     await u.e2_list()
+
+
+@bot.command(
+    name="obrazek_legenda",
+    description="Obrazek legenda",
+    scope= [
+        sd.dc_discord_bot_testy,
+    ],
+)
+async def obrazek_legenda(ctx: interactions.CommandContext):
+    await u.generate_image_when_legendary("Neeyo", "Jakas legenda", "Jakis potwor", 5)
+    try:
+        channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1064671672822677594)
+    except:
+        channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
+    await channel_last_item.send(files=interactions.File("img/legendary/" + "Neeyo" + ".png"))
 
 bot.start()

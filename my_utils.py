@@ -2090,7 +2090,9 @@ async def listen_for_new_items(link, clan):
                     channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1064671672822677594)
                 except:
                     channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
-                await channel_last_item.send(content=player_nickname + " zdobył(a) " + item_name + " z potwora " + mob_name + " w grupie 1-osobowej")
+                await generate_image_when_legendary(player_nickname, item_name, mob_name, 1)
+                await channel_last_item.send(files=interactions.File("img/legendary/" + player_nickname + ".png"))
+                #await channel_last_item.send(content=player_nickname + " zdobył(a) " + item_name + " z potwora " + mob_name + " w grupie 1-osobowej")
                 print(player_nickname + " zdobył(a) " + item_name + " z potwora " + mob_name + " w grupie 1-osobowej")
             else:
                 time.sleep(0.5)
@@ -2109,7 +2111,9 @@ async def listen_for_new_items(link, clan):
                             channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1064671672822677594)
                         except:
                             channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
-                        await channel_last_item.send(content=who_cathced + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(players) + "-osobowej")
+                        await generate_image_when_legendary(who_cathced, item_catched, mob_name, players)
+                        await channel_last_item.send(files=interactions.File("img/legendary/" + who_cathced + ".png"))
+                        #await channel_last_item.send(content=who_cathced + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(players) + "-osobowej")
                         print(who_cathced + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(players) + "-osobowej")
             
             legendary_items.clear()
@@ -2131,3 +2135,58 @@ async def e2_list():
         mob_name = str(i.find('b'))
         mob_name = mob_name[3:mob_name.find(" (")]
         print("'" + mob_name + "',")
+
+async def generate_image_when_legendary(nickname, item, enemy, group):
+    #myFont = ImageFont.truetype('Roboto-Regular.ttf', 16)
+    image = Image.open("img/legendary/template2.png") 
+    W, H = image.size
+    print(W, H)
+    #image = Image.new('RGB', size, bgColor)
+    draw = ImageDraw.Draw(image)
+
+    myMessage = nickname
+    myFont = ImageFont.truetype("arial.ttf", 50)
+    w, h = draw.textsize(myMessage, font=myFont)
+    x1, y1, x2, y2 = [0, 40, W, 90]
+    x = (x2 - x1 - w)/2 + x1
+    y = (y2 - y1 - h)/2 + y1
+    draw.text((x, y), myMessage, align='center', font=myFont, fill='black')
+
+    myMessage = 'zdobył(a)'
+    myFont = ImageFont.truetype("arial.ttf", 30)
+    w, h = draw.textsize(myMessage, font=myFont)
+    x1, y1, x2, y2 = [0, 110, W, 140]
+    x = (x2 - x1 - w)/2 + x1
+    y = (y2 - y1 - h)/2 + y1
+    draw.text((x, y), myMessage, align='center', font=myFont, fill='black')
+
+    myMessage = item
+    myFont = ImageFont.truetype("arial.ttf", 40)
+    w, h = draw.textsize(myMessage, font=myFont)
+    x1, y1, x2, y2 = [0, 160, W, 200]
+    x = (x2 - x1 - w)/2 + x1
+    y = (y2 - y1 - h)/2 + y1
+    draw.text((x-1, y), myMessage, align='center', font=myFont, fill='black')
+    draw.text((x+1, y), myMessage, align='center', font=myFont, fill='black')
+    draw.text((x, y-1), myMessage, align='center', font=myFont, fill='black')
+    draw.text((x, y+1), myMessage, align='center', font=myFont, fill='black')
+    draw.text((x, y), myMessage, align='center', font=myFont, fill='orange')
+
+    myMessage = 'z potwora ' + enemy
+    myFont = ImageFont.truetype("arial.ttf", 30)
+    w, h = draw.textsize(myMessage, font=myFont)
+    x1, y1, x2, y2 = [0, 220, W, 250]
+    x = (x2 - x1 - w)/2 + x1
+    y = (y2 - y1 - h)/2 + y1
+    draw.text((x, y), myMessage, align='center', font=myFont, fill='black')
+
+    if(group > 1):
+        myMessage = 'w grupie ' + str(group) + "-osobowej"
+        myFont = ImageFont.truetype("arial.ttf", 30)
+        w, h = draw.textsize(myMessage, font=myFont)
+        x1, y1, x2, y2 = [0, 270, W, 300]
+        x = (x2 - x1 - w)/2 + x1
+        y = (y2 - y1 - h)/2 + y1
+        draw.text((x, y), myMessage, align='center', font=myFont, fill='black')
+
+    image.save('img/legendary/' + nickname + '.png', "PNG")
