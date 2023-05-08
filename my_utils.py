@@ -854,6 +854,43 @@ async def get_data_in_db_quiz_results(server_id, user_id = None):
     return res2
 
 
+async def get_data_in_db_last_item(clan):
+    path = 'database.db'
+    con = sqlite3.connect(path)
+    cur = con.cursor()
+    data = [clan]
+    sql = ''' SELECT item_id
+              FROM last_item
+              WHERE clan = ?'''
+    res = cur.execute(sql, data)
+    res2 = res.fetchone()
+    if(res2 is None):
+        return None
+    else:
+        return res2[0]
+
+async def update_data_in_db_last_item(clan, item_id):
+    path = 'database.db'
+    con = sqlite3.connect(path)
+    cur = con.cursor()
+    data = (str(item_id), clan)
+    sql = ''' UPDATE last_item
+              SET item_id = ?
+              WHERE clan = ?'''
+    cur.execute(sql, data)
+    con.commit()
+
+async def add_data_in_db_last_item(clan, item_id):
+    path = 'database.db'
+    con = sqlite3.connect(path)
+    cur = con.cursor()
+    data = (clan, int(item_id))
+    sql = ''' INSERT INTO last_item(clan, item_id)
+              VALUES(?, ?)'''
+    cur.execute(sql, data)
+    con.commit()
+
+
 async def players_online(ctx, swiat):
     try:
         URL = "https://public-api.margonem.pl/info/online/"+ swiat.lower() +".json"
@@ -1971,3 +2008,126 @@ async def follow_posts(link):
     table = soup.find('table', id_='posts')
     table = soup.find('tbody')
     print(table)
+
+
+async def listen_for_new_items(link, clan):
+    legendary_items = []
+    first_item_id = 0
+
+    try:
+        last_item = await get_data_in_db_last_item(clan)
+    except Exception as e:
+        print(e)
+        path = 'database.db'
+        con = sqlite3.connect(path)
+        cur = con.cursor()
+        cur.execute("CREATE TABLE last_item(clan, item_id)")
+        last_item = str(await get_data_in_db_last_item(clan))
+    #print(last_item)
+
+    odpowiedz = requests.get(link, cookies=sd.cookies, headers=sd.headers)
+    soup = BeautifulSoup(odpowiedz.text, 'html.parser')
+    items = soup.find_all('div', class_='item col-md-12 row-shadow')
+
+    for i in items:
+        #print(i)
+        try:
+            item_id = str(i.find('a', class_='itemborder')['href'])[7:]
+        except:
+            item_id = str(i.find('a', class_='empty-replacer hastip')['href'])[7:]
+        if(first_item_id == 0):
+            first_item_id = item_id
+        #print(first_item_id)
+        #print(item_id)
+
+        if(last_item is None):
+            await add_data_in_db_last_item(clan, item_id)
+            return
+        if(last_item == first_item_id):
+            print("Dane aktualne")
+            return
+        if(last_item == item_id):
+            await update_data_in_db_last_item(clan, first_item_id)
+            print("Dane zaktualizowane")
+            return
+        #print(str(item_id))
+        #if(item_id == await get
+        #print(i)
+        for item in i.find_all('img'):
+            data = str(item["data-stats"])
+            data = data.split(";")
+            item_name = data[0]
+            item_name = item_name[:item_name.find("||")]
+            #print(item_name)
+            #print(data)
+            for single_data in data:
+                if "rarity=" in single_data:
+                    item_rarity = single_data[7:]
+                    if('heroic' in item_rarity):
+                        legendary_items.append(item_name)
+                    break
+            #print(item_rarity)
+        #print(str(len(legendary_items)))
+        if(len(legendary_items) > 0):
+            mob_name = i.find('a', class_='hastip').string
+            for e2_name in g.mob_name_e2:
+                if(unidecode(e2_name.lower()) in unidecode(mob_name.lower())):
+                    #print(unidecode(e2_name.lower()))
+                    #print(unidecode(mob_name.lower()))
+                    #print(e2_name)
+                    mob_name = e2_name
+                    break
+            else:
+                mob_name = mob_name[27:mob_name.find("(")]
+            #print(mob_name)
+
+            players = len(i.find_all('div', class_='player hastip'))
+            #print(str(players))
+            if(players == 1):
+                player_nickname = i.find('div', class_='player hastip')["data-tip"]
+                player_nickname = player_nickname[:player_nickname.find(" (")]
+                try:
+                    channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1064671672822677594)
+                except:
+                    channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
+                await channel_last_item.send(content=player_nickname + " zdobył(a) " + item_name + " z potwora " + mob_name + " w grupie 1-osobowej")
+                print(player_nickname + " zdobył(a) " + item_name + " z potwora " + mob_name + " w grupie 1-osobowej")
+            else:
+                time.sleep(0.5)
+                odpowiedz = requests.get(link + "item-" + str(item_id), cookies=sd.cookies, headers=sd.headers)
+                soup2 = BeautifulSoup(odpowiedz.text, 'html.parser')
+                #print(soup2)
+
+                for item_drop in soup2.find_all('p', class_='divide catcher'):
+                    item_drop = str(item_drop)
+                    item_catched = item_drop[26:item_drop.find(' <b class="color">')]
+                    who_cathced = item_drop[item_drop.find('</b>')+5:item_drop.find('</p>')]
+                    #print(item_catched)
+                    #print(who_cathced)
+                    if item_catched in legendary_items:
+                        try:
+                            channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1064671672822677594)
+                        except:
+                            channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
+                        await channel_last_item.send(content=who_cathced + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(players) + "-osobowej")
+                        print(who_cathced + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(players) + "-osobowej")
+            
+            legendary_items.clear()
+
+    #IN CASE LAST ITEM IS NOT ON FIRST PAGE        
+    await update_data_in_db_last_item(clan, first_item_id)
+    print("Dane zaktualizowane, nie znaleziono ostatniego itemu")
+
+    #print(str(len(soup.find_all('a', class_='btn next'))))
+    #print(str(soup.find('a', class_='btn next')['href']))
+    #if len(soup.find_all('a', class_='btn next')) > 0:
+    #    await listen_for_new_items(link + str(soup.find('a', class_='btn next')['href']), clan)
+
+async def e2_list():
+    odpowiedz = requests.get("https://margohelp.pl/elity-ii")
+    soup = BeautifulSoup(odpowiedz.text, 'html.parser')
+    e2 = soup.find_all('div', class_='heros-box')
+    for i in e2:
+        mob_name = str(i.find('b'))
+        mob_name = mob_name[3:mob_name.find(" (")]
+        print("'" + mob_name + "',")

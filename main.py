@@ -25,6 +25,7 @@ async def on_start():
     except:
         g.channel_quiz = await interactions.get(bot, interactions.Channel, object_id=1085193552864235591)
     my_task.start()
+    #look_for_new_item.start()
 
 
 @bot.command(
@@ -666,6 +667,10 @@ async def dropy_gracza(ctx: interactions.CommandContext):
 @create_task(IntervalTrigger(60))
 async def my_task():
     await u.players_online_run_forever("Narwhals")
+
+@create_task(IntervalTrigger(60))
+async def look_for_new_item():
+    await u.listen_for_new_items("https://grooove.pl/blade_of_destiny_narwhals/", "bod")
 
 @create_task(IntervalTrigger(3))
 async def zagadka_delay():
@@ -1395,5 +1400,35 @@ async def hti(ctx: interactions.CommandContext, link: str, poziom: int):
 )
 async def posty(ctx: interactions.CommandContext, link: str):
     await u.follow_posts(link)
+
+
+@bot.command(
+    name="nowe_itemy",
+    description="Nowe itemy",
+    scope= [
+        sd.dc_discord_bot_testy,
+    ],
+    options = [
+        interactions.Option(
+            type=interactions.OptionType.STRING,
+            name="link",
+            description="Link",
+            required=True,
+        ),
+    ]
+)
+async def nowe_itemy(ctx: interactions.CommandContext, link: str):
+    await u.listen_for_new_items(link, "bod")
+
+
+@bot.command(
+    name="e2_lista",
+    description="Lista e2",
+    scope= [
+        sd.dc_discord_bot_testy,
+    ],
+)
+async def e2_lista(ctx: interactions.CommandContext):
+    await u.e2_list()
 
 bot.start()
