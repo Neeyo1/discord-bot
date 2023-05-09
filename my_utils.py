@@ -2012,6 +2012,7 @@ async def follow_posts(link):
 
 async def listen_for_new_items(link, clan):
     legendary_items = []
+    legendary_items_links = []
     first_item_id = 0
 
     try:
@@ -2065,6 +2066,7 @@ async def listen_for_new_items(link, clan):
                     item_rarity = single_data[7:]
                     if('heroic' in item_rarity):
                         legendary_items.append(item_name)
+                        legendary_items_links.append(str(item["src"]))
                     break
             #print(item_rarity)
         #print(str(len(legendary_items)))
@@ -2081,21 +2083,23 @@ async def listen_for_new_items(link, clan):
                 mob_name = mob_name[27:mob_name.find("(")]
             #print(mob_name)
 
-            players = len(i.find_all('div', class_='player hastip'))
+            players = i.find_all('div', class_='player hastip')
             #print(str(players))
-            if(players == 1):
+            if(len(players) == 1):
                 player_nickname = i.find('div', class_='player hastip')["data-tip"]
                 player_nickname = player_nickname[:player_nickname.find(" (")]
                 try:
                     channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1064671672822677594)
                 except:
                     channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
-                await generate_image_when_legendary(player_nickname, item_name, mob_name, 1)
-                await channel_last_item.send(files=interactions.File("img/legendary/" + player_nickname + ".png"))
+                item_link = legendary_items_links[0]
+                character_link = "https://micc.garmory-cdn.cloud" + str(i.find('div', class_='player hastip')["data-bg"])
+                await generate_image_when_legendary(player_nickname, item_name, mob_name, 1, item_link, character_link)
+                await channel_last_item.send(files=interactions.File("img/legendary/" + unidecode(player_nickname) + ".png"))
                 #await channel_last_item.send(content=player_nickname + " zdobył(a) " + item_name + " z potwora " + mob_name + " w grupie 1-osobowej")
                 print(player_nickname + " zdobył(a) " + item_name + " z potwora " + mob_name + " w grupie 1-osobowej")
             else:
-                time.sleep(0.5)
+                await asyncio.sleep(0.5)
                 odpowiedz = requests.get(link + "item-" + str(item_id), cookies=sd.cookies, headers=sd.headers)
                 soup2 = BeautifulSoup(odpowiedz.text, 'html.parser')
                 #print(soup2)
@@ -2104,6 +2108,14 @@ async def listen_for_new_items(link, clan):
                     item_drop = str(item_drop)
                     item_catched = item_drop[26:item_drop.find(' <b class="color">')]
                     who_cathced = item_drop[item_drop.find('</b>')+5:item_drop.find('</p>')]
+                    for single_player in players:
+                        nick_temp = str(single_player["data-tip"])
+                        nick_temp = nick_temp[:nick_temp.find(" (")]
+                        print(nick_temp)
+                        print(who_cathced)
+                        if(nick_temp == who_cathced):
+                            character_link = "https://micc.garmory-cdn.cloud" + str(single_player["data-bg"])
+                            break
                     #print(item_catched)
                     #print(who_cathced)
                     if item_catched in legendary_items:
@@ -2111,12 +2123,16 @@ async def listen_for_new_items(link, clan):
                             channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1064671672822677594)
                         except:
                             channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
-                        await generate_image_when_legendary(who_cathced, item_catched, mob_name, players)
+                        #print(str(legendary_items.index(item_catched)))
+                        #print(str(legendary_items_links[legendary_items.index(item_catched)]))
+                        item_link = legendary_items_links[legendary_items.index(item_catched)]
+                        await generate_image_when_legendary(who_cathced, item_catched, mob_name, len(players), item_link, character_link)
                         await channel_last_item.send(files=interactions.File("img/legendary/" + who_cathced + ".png"))
                         #await channel_last_item.send(content=who_cathced + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(players) + "-osobowej")
-                        print(who_cathced + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(players) + "-osobowej")
+                        print(who_cathced + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(len(players)) + "-osobowej")
             
             legendary_items.clear()
+            legendary_items_links.clear()
 
     #IN CASE LAST ITEM IS NOT ON FIRST PAGE        
     await update_data_in_db_last_item(clan, first_item_id)
@@ -2136,11 +2152,11 @@ async def e2_list():
         mob_name = mob_name[3:mob_name.find(" (")]
         print("'" + mob_name + "',")
 
-async def generate_image_when_legendary(nickname, item, enemy, group):
+async def generate_image_when_legendary(nickname, item, enemy, group, item_link, character_link):
     #myFont = ImageFont.truetype('Roboto-Regular.ttf', 16)
     image = Image.open("img/legendary/template2.png") 
     W, H = image.size
-    print(W, H)
+    #print(W, H)
     #image = Image.new('RGB', size, bgColor)
     draw = ImageDraw.Draw(image)
 
@@ -2189,4 +2205,13 @@ async def generate_image_when_legendary(nickname, item, enemy, group):
         y = (y2 - y1 - h)/2 + y1
         draw.text((x, y), myMessage, align='center', font=myFont, fill='black')
 
-    image.save('img/legendary/' + nickname + '.png', "PNG")
+    legendary_background = Image.open("img/legendary/background_legendary.png")
+    image.paste(legendary_background, (400-32, 320))
+
+    item_gif = Image.open(requests.get(item_link, stream=True).raw)
+    item_gif = item_gif.resize((64, 64))
+    item_gif = item_gif.convert("RGBA")
+    print(item_gif.mode)
+    image.paste(item_gif, (400-32, 320), mask=item_gif)
+
+    image.save('img/legendary/' + unidecode(nickname) + '.png', "PNG")
