@@ -7,7 +7,7 @@ import time
 import sqlite3
 import datetime
 import random
-import os.path
+import os
 from unidecode import unidecode
 from datetime import datetime as dt
 from bs4 import BeautifulSoup
@@ -2096,8 +2096,10 @@ async def listen_for_new_items(link, clan):
                 character_link = "https://micc.garmory-cdn.cloud" + str(i.find('div', class_='player hastip')["data-bg"])
                 await generate_image_when_legendary(player_nickname, item_name, mob_name, 1, item_link, character_link)
                 await channel_last_item.send(files=interactions.File("img/legendary/" + unidecode(player_nickname) + ".png"))
+                os.remove("img/legendary/" + unidecode(player_nickname) + ".png")
                 #await channel_last_item.send(content=player_nickname + " zdobył(a) " + item_name + " z potwora " + mob_name + " w grupie 1-osobowej")
                 print(player_nickname + " zdobył(a) " + item_name + " z potwora " + mob_name + " w grupie 1-osobowej")
+                await asyncio.sleep(1)
             else:
                 await asyncio.sleep(0.5)
                 odpowiedz = requests.get(link + "item-" + str(item_id), cookies=sd.cookies, headers=sd.headers)
@@ -2111,8 +2113,8 @@ async def listen_for_new_items(link, clan):
                     for single_player in players:
                         nick_temp = str(single_player["data-tip"])
                         nick_temp = nick_temp[:nick_temp.find(" (")]
-                        print(nick_temp)
-                        print(who_cathced)
+                        #print(nick_temp)
+                        #print(who_cathced)
                         if(nick_temp == who_cathced):
                             character_link = "https://micc.garmory-cdn.cloud" + str(single_player["data-bg"])
                             break
@@ -2127,9 +2129,11 @@ async def listen_for_new_items(link, clan):
                         #print(str(legendary_items_links[legendary_items.index(item_catched)]))
                         item_link = legendary_items_links[legendary_items.index(item_catched)]
                         await generate_image_when_legendary(who_cathced, item_catched, mob_name, len(players), item_link, character_link)
-                        await channel_last_item.send(files=interactions.File("img/legendary/" + who_cathced + ".png"))
+                        await channel_last_item.send(files=interactions.File("img/legendary/" + unidecode(who_cathced) + ".png"))
+                        os.remove("img/legendary/" + unidecode(who_cathced) + ".png")
                         #await channel_last_item.send(content=who_cathced + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(players) + "-osobowej")
                         print(who_cathced + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(len(players)) + "-osobowej")
+                        await asyncio.sleep(1)
             
             legendary_items.clear()
             legendary_items_links.clear()
