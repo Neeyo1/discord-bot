@@ -2060,17 +2060,19 @@ async def listen_for_new_items(link, clan):
             item_name = data[0]
             item_name = item_name[:item_name.find("||")]
             #print(item_name)
+            #print(item_name)
             #print(data)
             for single_data in data:
                 if "rarity=" in single_data:
                     item_rarity = single_data[7:]
+                    #print(item_rarity)
                     if('heroic' in item_rarity):
                         legendary_items.append(item_name)
                         legendary_items_links.append(str(item["src"]))
+                        #print(legendary_items)
                     break
-            #print(item_rarity)
-        #print(str(len(legendary_items)))
         if(len(legendary_items) > 0):
+            
             mob_name = i.find('a', class_='hastip').string
             for e2_name in g.mob_name_e2:
                 if(unidecode(e2_name.lower()) in unidecode(mob_name.lower())):
@@ -2133,6 +2135,18 @@ async def listen_for_new_items(link, clan):
                         os.remove("img/legendary/" + unidecode(who_cathced) + ".png")
                         #await channel_last_item.send(content=who_cathced + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(players) + "-osobowej")
                         print(who_cathced + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(len(players)) + "-osobowej")
+                        await asyncio.sleep(1)
+                if(len(soup2.find_all('p', class_='divide catcher')) == 0):
+                    try:
+                        channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1064671672822677594)
+                    except:
+                        channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
+                    for item_catched in legendary_items:
+                        item_link = legendary_items_links[legendary_items.index(item_catched)]
+                        await generate_image_when_legendary("Nieznany ktoś", item_catched, mob_name, len(players), item_link, 0)
+                        await channel_last_item.send(files=interactions.File("img/legendary/" + unidecode("Nieznany ktoś") + ".png"))
+                        os.remove("img/legendary/" + unidecode("Nieznany ktoś") + ".png")
+                        print("Ktoś" + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(len(players)) + "-osobowej")
                         await asyncio.sleep(1)
             
             legendary_items.clear()
