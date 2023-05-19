@@ -14,6 +14,7 @@ from bs4 import BeautifulSoup
 import time
 import aiofiles
 import asyncio
+import aiohttp
 import matplotlib.pyplot as plt
 from html2image import Html2Image
 #import socketio
@@ -41,8 +42,9 @@ import global_variables as g
 
 async def get_data(arg, argOrig):
     #global bicia, uni, hera, legi, rok
-    odpowiedz = requests.get(arg, cookies=sd.cookies, headers=sd.headers)
-    soup = BeautifulSoup(odpowiedz.text, 'html.parser')
+    async with aiohttp.ClientSession(cookies=sd.cookies, headers=sd.headers) as session:
+        async with session.get(arg) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
     soup.find_all('div', class_='item col-md-12 row-shadow')
     g.bicia += len(soup.find_all('div', class_='item col-md-12 row-shadow'))
 
@@ -65,8 +67,9 @@ async def get_data(arg, argOrig):
 async def get_timer(embed):
     try:
         #global sd.mob_lvl_heros, sd.mob_lvl_tytan, sd.mob_name_tytan
-        odpowiedz = requests.get(sd.bodLL + "/timer", cookies=sd.cookies, headers=sd.headers)
-        soup = BeautifulSoup(odpowiedz.text, 'html.parser')
+        async with aiohttp.ClientSession(cookies=sd.cookies, headers=sd.headers) as session:
+            async with session.get(sd.bodLL + "/timer") as response:
+                soup = BeautifulSoup(await response.text(), 'html.parser')
         soup = soup.find_all('div', class_='timer item col-md-12 row-shadow center')
         #print(len(soup))
 
@@ -273,8 +276,9 @@ async def resetWyniki():
 
 async def get_data_darro():
     #global page, position
-    odpowiedz = requests.get("https://narwhals.darro.eu/?t=currency&page=" + str(g.page))
-    soup = BeautifulSoup(odpowiedz.text, 'html.parser')
+    async with aiohttp.ClientSession() as session:
+        async with session.get("https://narwhals.darro.eu/?t=currency&page=" + str(g.page)) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
     print(g.page)
     print(len(soup.find_all('td'))/2)
     if (len(soup.find_all('td'))>0):
@@ -291,8 +295,9 @@ async def get_data_darro():
         await get_data_darro()
 
 async def get_data_absency(ctx, df, world, link, page):
-    odpowiedz = requests.get(link + str(page))
-    soup = BeautifulSoup(odpowiedz.text, 'html.parser')
+    async with aiohttp.ClientSession() as session:
+        async with session.get(link + str(page)) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
     table = soup.find('table', class_='table--separators w-100')
     table = soup.find('tbody')
     try:
@@ -313,7 +318,7 @@ async def get_data_absency(ctx, df, world, link, page):
                 
             list = [nickname, lvl, last_online]
             df.loc[len(df)] = list
-        time.sleep(0.5)
+        asyncio.sleep(0.5)
         await get_data_absency(ctx, df, world, link, page+1)
     else:
         #df = df.sort_values(by=['Last online'], ascending=False).head(int(arg))
@@ -893,9 +898,9 @@ async def add_data_in_db_last_item(clan, item_id):
 
 async def players_online(ctx, swiat):
     try:
-        URL = "https://public-api.margonem.pl/info/online/"+ swiat.lower() +".json"
-        r = requests.get(url = URL)
-        data = r.json()
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://public-api.margonem.pl/info/online/"+ swiat.lower() +".json") as response:
+                data = await response.json()
     except:
         await ctx.send("Nie udało się pobrać listy graczy online, prawdopodobnie serwery Margonem leżą")
         return
@@ -947,9 +952,9 @@ async def players_online_run_forever(swiat):
     west_krolik_count = 0
 
     try:
-        URL = "https://public-api.margonem.pl/info/online/narwhals.json"
-        r = requests.get(url = URL)
-        data = r.json()
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://public-api.margonem.pl/info/online/narwhals.json") as response:
+                data = await response.json()
     except Exception as e:
         print(e)
         data = []
@@ -1165,8 +1170,10 @@ async def clan_members(ctx, klan):
         klan_url = "https://www.margonem.pl/guilds/view,Narwhals,1829"
     elif(klan == "bod"):
         klan_url = "https://www.margonem.pl/guilds/view,Narwhals,1834"
-    odpowiedz = requests.get(klan_url)
-    soup = BeautifulSoup(odpowiedz.text, 'html.parser')
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(klan_url) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
     table = soup.find('table', class_='table--separators w-100')
     table = table.find('tbody')
     #print(table)
@@ -1218,8 +1225,9 @@ async def clan_members(ctx, klan):
 
         if(klan == "ros"):
             klan_url = "https://www.margonem.pl/guilds/view,Narwhals,1909"
-            odpowiedz = requests.get(klan_url)
-            soup = BeautifulSoup(odpowiedz.text, 'html.parser')
+            async with aiohttp.ClientSession() as session:
+                async with session.get(klan_url) as response:
+                    soup = BeautifulSoup(await response.text(), 'html.parser')
             table = soup.find('table', class_='table--separators w-100')
             table = table.find('tbody')
             #print(table)
@@ -1553,8 +1561,9 @@ async def get_google_sheets_data(ctx, embed):
 async def generate_image_from_html(link, lvl):
     hti = Html2Image()
 
-    respond = requests.get(link)
-    soup = BeautifulSoup(respond.text, 'html.parser')
+    async with aiohttp.ClientSession() as session:
+        async with session.get(link) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
     data = str(soup.find('div', class_='item item-tip-')['data-stat'])
     datatemp = str(soup.find('div', class_='item item-tip-'))
     print(datatemp)
@@ -2003,8 +2012,9 @@ async def symulator_unik(data_dict):
 
 
 async def follow_posts(link):
-    odpowiedz = requests.get(link)
-    soup = BeautifulSoup(odpowiedz.text, 'html.parser')
+    async with aiohttp.ClientSession() as session:
+        async with session.get(link) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
     table = soup.find('table', id_='posts')
     table = soup.find('tbody')
     print(table)
@@ -2026,8 +2036,9 @@ async def listen_for_new_items(link, clan):
         last_item = str(await get_data_in_db_last_item(clan))
     #print(last_item)
 
-    odpowiedz = requests.get(link, cookies=sd.cookies, headers=sd.headers)
-    soup = BeautifulSoup(odpowiedz.text, 'html.parser')
+    async with aiohttp.ClientSession(cookies=sd.cookies, headers=sd.headers) as session:
+        async with session.get(link) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
     items = soup.find_all('div', class_='item col-md-12 row-shadow')
 
     for i in items:
@@ -2104,8 +2115,10 @@ async def listen_for_new_items(link, clan):
                 await asyncio.sleep(1)
             else:
                 await asyncio.sleep(0.5)
-                odpowiedz = requests.get(link + "item-" + str(item_id), cookies=sd.cookies, headers=sd.headers)
-                soup2 = BeautifulSoup(odpowiedz.text, 'html.parser')
+
+                async with aiohttp.ClientSession(cookies=sd.cookies, headers=sd.headers) as session:
+                    async with session.get(link + "item-" + str(item_id)) as response:
+                        soup2 = BeautifulSoup(await response.text(), 'html.parser')
                 #print(soup2)
 
                 for item_drop in soup2.find_all('p', class_='divide catcher'):
@@ -2162,8 +2175,9 @@ async def listen_for_new_items(link, clan):
     #    await listen_for_new_items(link + str(soup.find('a', class_='btn next')['href']), clan)
 
 async def e2_list():
-    odpowiedz = requests.get("https://margohelp.pl/elity-ii")
-    soup = BeautifulSoup(odpowiedz.text, 'html.parser')
+    async with aiohttp.ClientSession() as session:
+        async with session.get("https://margohelp.pl/elity-ii") as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
     e2 = soup.find_all('div', class_='heros-box')
     for i in e2:
         mob_name = str(i.find('b'))
