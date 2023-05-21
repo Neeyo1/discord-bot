@@ -318,7 +318,7 @@ async def get_data_absency(ctx, df, world, link, page):
                 
             list = [nickname, lvl, last_online]
             df.loc[len(df)] = list
-        asyncio.sleep(0.5)
+        await asyncio.sleep(0.5)
         await get_data_absency(ctx, df, world, link, page+1)
     else:
         #df = df.sort_values(by=['Last online'], ascending=False).head(int(arg))
@@ -2247,3 +2247,65 @@ async def generate_image_when_legendary(nickname, item, enemy, group, item_link,
     image.paste(item_gif, (400-32, 320), mask=item_gif)
 
     image.save('img/legendary/' + unidecode(nickname) + '.png', "PNG")
+
+
+async def get_data_bans(ctx, df, world, link, page, embed):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(link + str(page)) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
+    table = soup.find('table', class_='table--separators w-100')
+    table = soup.find('tbody')
+    try:
+        length = len(table.find_all('tr'))
+    except:
+        length = 0
+    if(length>1):
+        for i in table.find_all('tr'):
+            data = i.find_all("td")
+            profile_link = data[1].a["href"]
+            profile_link = profile_link[profile_link.find(",")+1:profile_link.find("#")]
+                
+            list = [profile_link]
+            #print(profile_link)
+            if(not(df.loc[df['Id'] == profile_link].any().all())):
+                df = df.append({'Id':profile_link}, ignore_index=True)
+            #df.loc[len(df)] = list
+        await asyncio.sleep(0.5)
+        await get_data_bans(ctx, df, world, link, page+1, embed)
+    else:
+        print(df)
+        embed_value = ""
+        df_bans_col = ({'Id':["temp"], 'Nickname':["Temp"],  'Status':["Temp"]})
+        df_bans = pd.DataFrame(df_bans_col)
+        df_bans = df_bans.drop(df_bans.index[[0]])
+
+        for index, row in df.iterrows():
+            async with aiohttp.ClientSession() as session:
+                async with session.get("https://www.margonem.pl/profile/view," + row['Id']) as response:
+                    soup = BeautifulSoup(await response.text(), 'html.parser')
+            player_nickname = soup.find('div', class_='brown-box profile-header mb-4').span.string[17:-12]
+            try:
+                status = soup.find('div', class_='profile-header__status').string[1:-1]
+            except:
+                status = None
+            print(player_nickname + "|" + str(status))
+            if(status is not None):
+                df_bans = df_bans.append({'Id':row['Id'], 'Nickname':player_nickname, 'Status':status}, ignore_index=True)
+                embed_value = embed_value + player_nickname + " : " + status + "\n"
+
+            await asyncio.sleep(1)  
+
+        print(df_bans)
+        embed_value = embed_value[:-1]
+        embed.add_field(name="Świat " + world, value=embed_value, inline=False)
+
+
+async def send_message_via_ll(ctx, message):
+    groove_cookie_string = "; ".join([str(x)+"="+str(y) for x,y in sd.groove_cookies.items()])
+    try:
+        ws = create_connection(sd.groove_websocket, header = sd.groove_headers, cookie = groove_cookie_string)
+        ws.send('42' + json.dumps(["data",{"txt":message + " - dodano przez dc przez " + ctx.author.user.username,"action":"msgToClan","clan":"blade_of_destiny_narwhals","clanID":1834,"aid":"5897579"}]))
+        ws.close()
+        return 1
+    except:
+        return 3

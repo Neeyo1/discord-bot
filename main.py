@@ -1447,4 +1447,65 @@ async def obrazek_legenda(ctx: interactions.CommandContext):
         channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
     await channel_last_item.send(files=interactions.File("img/legendary/" + "Neeyo" + ".png"))
 
+
+@bot.command(
+    name="kary",
+    description="Wyświetla liste ukaranych graczy na świecie",
+    scope= [
+        sd.dc_discord_bot_testy,
+    ],
+)
+async def kary(ctx: interactions.CommandContext):
+    swiat = "Narwhals"
+
+    df_col = ({'Id':["temp"]})
+    df = pd.DataFrame(df_col)
+    df = df.drop(df.index[[0]])
+    link = "https://www.margonem.pl/ladder/players,"+ swiat +"?page="
+    page = 1
+
+    await ctx.send("Przez zlagowane serwery proces może zająć wiele minut, odpowiem gdy skończę")
+
+    embed=interactions.Embed(title="Lista ukaranych graczy")
+    try:
+        await u.get_data_bans(ctx, df, swiat, link, page, embed)
+        try:
+            channel = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
+            await channel.send(embeds = embed)
+        except:
+            pass
+    except:
+        try:
+            channel = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
+            await channel.send(content="Jakiś błąd, prawdopodobnie błąd serwera")
+        except:
+            pass
+    await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "kary - Narwhals")
+
+
+@bot.command(
+    name="dodaj_wiadomosc_przez_ll",
+    description="Dodaje wiadomosc przez ll",
+    scope= [
+        sd.dc_discord_bot_testy,
+    ],
+    options = [
+        interactions.Option(
+            type=interactions.OptionType.STRING,
+            name="message",
+            description="Wiadomość",
+            required=True,
+            autocomplete=True,
+        ),
+    ],
+)
+async def dodaj_wiadomosc_przez_ll(ctx: interactions.CommandContext, message: str):
+    if(await u.send_message_via_ll(ctx, message) == 1):
+        await ctx.send("Pomyślnie wysłano wiadomość: " + message)
+    elif(await u.send_message_via_ll(ctx, message) == 2):
+        await ctx.send("Brak uprawnień do użycia komendy, tymczasowo ograniczone")
+    elif(await u.send_message_via_ll(ctx, message) == 3):
+        await ctx.send("Wystąpił błąd")
+
+
 bot.start()
