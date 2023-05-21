@@ -7,18 +7,21 @@ import time
 import sqlite3
 import datetime
 import random
-import os.path
+import os
 from unidecode import unidecode
 from datetime import datetime as dt
 from bs4 import BeautifulSoup
 import time
 import aiofiles
 import asyncio
+import aiohttp
 import matplotlib.pyplot as plt
+from html2image import Html2Image
 #import socketio
 #import websockets
 from websocket import create_connection
 import json
+import math
 from asyncio import sleep
 from PIL import Image, ImageDraw, ImageFont
 #from discord.ext import commands
@@ -39,8 +42,9 @@ import global_variables as g
 
 async def get_data(arg, argOrig):
     #global bicia, uni, hera, legi, rok
-    odpowiedz = requests.get(arg, cookies=sd.cookies, headers=sd.headers)
-    soup = BeautifulSoup(odpowiedz.text, 'html.parser')
+    async with aiohttp.ClientSession(cookies=sd.cookies, headers=sd.headers) as session:
+        async with session.get(arg) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
     soup.find_all('div', class_='item col-md-12 row-shadow')
     g.bicia += len(soup.find_all('div', class_='item col-md-12 row-shadow'))
 
@@ -63,8 +67,9 @@ async def get_data(arg, argOrig):
 async def get_timer(embed):
     try:
         #global sd.mob_lvl_heros, sd.mob_lvl_tytan, sd.mob_name_tytan
-        odpowiedz = requests.get(sd.bodLL + "/timer", cookies=sd.cookies, headers=sd.headers)
-        soup = BeautifulSoup(odpowiedz.text, 'html.parser')
+        async with aiohttp.ClientSession(cookies=sd.cookies, headers=sd.headers) as session:
+            async with session.get(sd.bodLL + "/timer") as response:
+                soup = BeautifulSoup(await response.text(), 'html.parser')
         soup = soup.find_all('div', class_='timer item col-md-12 row-shadow center')
         #print(len(soup))
 
@@ -142,16 +147,16 @@ async def add_timer(ctx, mob_name):
     #global sd.groove_headers, sd.groove_cookies
     groove_cookie_string = "; ".join([str(x)+"="+str(y) for x,y in sd.groove_cookies.items()])
 
-    if(int(ctx.author.user.id) == 349851438228439040 or int(ctx.author.user.id) == 372381114809188362):
-        try:
-            ws = create_connection(sd.groove_websocket, header = sd.groove_headers, cookie = groove_cookie_string)
-            ws.send('42' + json.dumps(["data",{"name":mob_name,"action":"addhottimer","clan":"blade_of_destiny_narwhals","clanID":1834,"aid":"5897579"}]))
-            ws.close()
-            return 1
-        except:
-            return 3
-    else:
-        return 2
+    #if(int(ctx.author.user.id) == 349851438228439040 or int(ctx.author.user.id) == 372381114809188362):
+    try:
+        ws = create_connection(sd.groove_websocket, header = sd.groove_headers, cookie = groove_cookie_string)
+        ws.send('42' + json.dumps(["data",{"name":mob_name,"action":"addhottimer","clan":"blade_of_destiny_narwhals","clanID":1834,"aid":"5897579"}]))
+        ws.close()
+        return 1
+    except:
+        return 3
+    #else:
+    #    return 2
     
 
 async def get_timer_alt(embed):
@@ -271,8 +276,9 @@ async def resetWyniki():
 
 async def get_data_darro():
     #global page, position
-    odpowiedz = requests.get("https://narwhals.darro.eu/?t=currency&page=" + str(g.page))
-    soup = BeautifulSoup(odpowiedz.text, 'html.parser')
+    async with aiohttp.ClientSession() as session:
+        async with session.get("https://narwhals.darro.eu/?t=currency&page=" + str(g.page)) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
     print(g.page)
     print(len(soup.find_all('td'))/2)
     if (len(soup.find_all('td'))>0):
@@ -289,8 +295,9 @@ async def get_data_darro():
         await get_data_darro()
 
 async def get_data_absency(ctx, df, world, link, page):
-    odpowiedz = requests.get(link + str(page))
-    soup = BeautifulSoup(odpowiedz.text, 'html.parser')
+    async with aiohttp.ClientSession() as session:
+        async with session.get(link + str(page)) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
     table = soup.find('table', class_='table--separators w-100')
     table = soup.find('tbody')
     try:
@@ -311,7 +318,7 @@ async def get_data_absency(ctx, df, world, link, page):
                 
             list = [nickname, lvl, last_online]
             df.loc[len(df)] = list
-        time.sleep(0.5)
+        await asyncio.sleep(0.5)
         await get_data_absency(ctx, df, world, link, page+1)
     else:
         #df = df.sort_values(by=['Last online'], ascending=False).head(int(arg))
@@ -852,11 +859,48 @@ async def get_data_in_db_quiz_results(server_id, user_id = None):
     return res2
 
 
+async def get_data_in_db_last_item(clan):
+    path = 'database.db'
+    con = sqlite3.connect(path)
+    cur = con.cursor()
+    data = [clan]
+    sql = ''' SELECT item_id
+              FROM last_item
+              WHERE clan = ?'''
+    res = cur.execute(sql, data)
+    res2 = res.fetchone()
+    if(res2 is None):
+        return None
+    else:
+        return res2[0]
+
+async def update_data_in_db_last_item(clan, item_id):
+    path = 'database.db'
+    con = sqlite3.connect(path)
+    cur = con.cursor()
+    data = (str(item_id), clan)
+    sql = ''' UPDATE last_item
+              SET item_id = ?
+              WHERE clan = ?'''
+    cur.execute(sql, data)
+    con.commit()
+
+async def add_data_in_db_last_item(clan, item_id):
+    path = 'database.db'
+    con = sqlite3.connect(path)
+    cur = con.cursor()
+    data = (clan, int(item_id))
+    sql = ''' INSERT INTO last_item(clan, item_id)
+              VALUES(?, ?)'''
+    cur.execute(sql, data)
+    con.commit()
+
+
 async def players_online(ctx, swiat):
     try:
-        URL = "https://public-api.margonem.pl/info/online/"+ swiat.lower() +".json"
-        r = requests.get(url = URL)
-        data = r.json()
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://public-api.margonem.pl/info/online/"+ swiat.lower() +".json") as response:
+                data = await response.json()
     except:
         await ctx.send("Nie udało się pobrać listy graczy online, prawdopodobnie serwery Margonem leżą")
         return
@@ -908,9 +952,9 @@ async def players_online_run_forever(swiat):
     west_krolik_count = 0
 
     try:
-        URL = "https://public-api.margonem.pl/info/online/narwhals.json"
-        r = requests.get(url = URL)
-        data = r.json()
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://public-api.margonem.pl/info/online/narwhals.json") as response:
+                data = await response.json()
     except Exception as e:
         print(e)
         data = []
@@ -928,7 +972,7 @@ async def players_online_run_forever(swiat):
                 g.df_players_online_run_forever.loc[g.df_players_online_run_forever['Nickname'] == nickname, ['Minutes_online']] = int(minutes) + 1
             else:
                 g.df_players_online_run_forever = g.df_players_online_run_forever.append({'Nickname':nickname, 'Minutes_online':int(1), 'Account_id':int(account_id), 'Char_id':int(char_id)}, ignore_index=True)
-            if(int(date_today.hour) <= 7):
+            if(True):
                 if(nickname in g.ros_tanroth):
                     ros_tanroth_count = ros_tanroth_count+1
                 if(nickname in g.ros_teza):
@@ -1126,8 +1170,10 @@ async def clan_members(ctx, klan):
         klan_url = "https://www.margonem.pl/guilds/view,Narwhals,1829"
     elif(klan == "bod"):
         klan_url = "https://www.margonem.pl/guilds/view,Narwhals,1834"
-    odpowiedz = requests.get(klan_url)
-    soup = BeautifulSoup(odpowiedz.text, 'html.parser')
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(klan_url) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
     table = soup.find('table', class_='table--separators w-100')
     table = table.find('tbody')
     #print(table)
@@ -1179,8 +1225,9 @@ async def clan_members(ctx, klan):
 
         if(klan == "ros"):
             klan_url = "https://www.margonem.pl/guilds/view,Narwhals,1909"
-            odpowiedz = requests.get(klan_url)
-            soup = BeautifulSoup(odpowiedz.text, 'html.parser')
+            async with aiohttp.ClientSession() as session:
+                async with session.get(klan_url) as response:
+                    soup = BeautifulSoup(await response.text(), 'html.parser')
             table = soup.find('table', class_='table--separators w-100')
             table = table.find('tbody')
             #print(table)
@@ -1509,3 +1556,756 @@ async def get_google_sheets_data(ctx, embed):
         embed.url = "https://docs.google.com/spreadsheets/d/" + sd.SPREADSHEET_ID
     except HttpError as err:
         print(err)
+
+
+async def generate_image_from_html(link, lvl):
+    hti = Html2Image()
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(link) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
+    data = str(soup.find('div', class_='item item-tip-')['data-stat'])
+    datatemp = str(soup.find('div', class_='item item-tip-'))
+    print(datatemp)
+    data = data.split(";")
+    item_name = str(soup.find('div', class_='item item-tip-')['data-name'])
+    print(data)
+
+    data_dict = {}
+    for i in data:
+        if "rarity=" in i:
+            data_dict['item_rarity'] = i[7:]
+            continue
+        if "resfire=" in i:
+            data_dict['item_res_fire'] = i[8:]
+            continue
+        elif "fire=" in i:
+            data_dict['item_fire_dmg'] = i[5:]
+            continue
+        if "da=" in i:
+            data_dict['item_wc'] = i[3:]
+            continue
+        if "manabon=" in i:
+            data_dict['item_mana'] = i[8:]
+            continue
+        if "sa=" in i:
+            data_dict['item_sa'] = i[3:]
+            continue
+        if "lvl=" in i:
+            data_dict['item_lvl'] = i[4:]
+            continue
+        if "reqp=" in i:
+            data_dict['item_prof'] = i[5:]
+            continue
+        if "contra=" in i:
+            data_dict['item_contra'] = i[7:]
+            continue
+        if "resfrost=" in i:
+            data_dict['item_res_frost'] = i[9:]
+            continue
+        elif "frost=" in i:
+            data_temp = i[6:].split(",")
+            data_dict['item_frost_slow'] = data_temp[0]
+            data_dict['item_frost_dmg'] = data_temp[1]
+            continue
+        if "resdmg=" in i:
+            data_dict['item_res'] = i[7:]
+            continue
+        elif "acdmg=" in i:
+            data_dict['item_low_ac'] = i[6:]
+            continue
+        elif "dmg=" in i:
+            data_dict['item_dmg'] = i[4:]
+            continue
+        if "dz=" in i:
+            data_dict['item_zr'] = i[3:]
+            continue
+        if "hp=" in i:
+            data_dict['item_hp'] = i[3:]
+            continue
+        if "act=" in i:
+            data_dict['item_res_poison'] = i[4:]
+            continue
+        if "poison=" in i:
+            data_temp = i[7:].split(",")
+            data_dict['item_poison_slow'] = data_temp[0]
+            data_dict['item_poison_dmg'] = data_temp[1]
+            continue
+        if "lowcrit=" in i:
+            data_dict['item_low_crit'] = i[8:]
+            continue
+        elif "crit=" in i:
+            data_dict['item_crit'] = i[5:]
+            continue
+        if "critmval=" in i:
+            data_dict['item_crit_m_val'] = i[9:]
+            continue
+        if "heal=" in i:
+            data_dict['item_heal'] = i[5:]
+            continue
+        if "reslight=" in i:
+            data_dict['item_res_light'] = i[9:]
+            continue
+        elif "light=" in i:
+            data_dict['item_light_dmg'] = i[6:]
+            continue
+        if "critval=" in i:
+            data_dict['item_crit_val'] = i[8:]
+            continue
+        if "energybon=" in i:
+            data_dict['item_energy'] = i[10:]
+            continue
+        if "lowevade=" in i:
+            data_dict['item_low_evade'] = i[9:]
+            continue
+        elif "evade=" in i:
+            data_dict['item_evade'] = i[6:]
+            continue
+        if "absorb=" in i:
+            data_dict['item_absorb'] = i[7:]
+            continue
+        if "absorbm=" in i:
+            data_dict['item_absorb_m'] = i[8:]
+            continue
+        if "ac=" in i:
+            data_dict['item_ac'] = i[3:]
+            continue
+        if "di=" in i:
+            data_dict['item_int'] = i[3:]
+            continue
+        if "heal=" in i:
+            data_dict['item_heal'] = i[5:]
+            continue
+        if "endest=" in i:
+            data_dict['item_low_energy'] = i[7:]
+            continue
+        if "manadest=" in i:
+            data_dict['item_low_mana'] = i[9:]
+            continue
+        if "ds=" in i:
+            data_dict['item_str'] = i[3:]
+            continue
+        if "hpbon=" in i:
+            data_dict['item_hp_bon'] = i[6:]
+            continue
+        if "blok=" in i:
+            data_dict['item_blok'] = i[5:]
+            continue
+        if "pierceb=" in i:
+            data_dict['item_pierceb'] = i[8:]
+            continue
+        if "wound=" in i:
+            data_temp = i[6:].split(",")
+            data_dict['item_wound_chance'] = data_temp[0]
+            data_dict['item_wound_dmg'] = data_temp[1]
+            continue
+    
+    print(data_dict)
+
+    html_page = '<div class="item-tip tip t_item"><b class="item-name">' + item_name + '</b>'
+    if 'item_rarity' in data_dict:
+        html_page = html_page + '<b class="' + data_dict['item_rarity'] + '"><br/>* ' + data_dict['item_rarity'] + ' *</b>'
+    if 'item_dmg' in data_dict:
+        html_page = html_page + '<br/>Atak: ' + data_dict['item_dmg']
+    if 'item_fire_dmg' in data_dict:
+        html_page = html_page + '<br/>Obrażenia od ognia: ~' + data_dict['item_fire_dmg']
+    if 'item_frost_dmg' in data_dict:
+        html_page = html_page + '<br/>Obrażenia od zimna: +' + data_dict['item_frost_dmg']
+    if 'item_frost_slow' in data_dict:
+        html_page = html_page + '<br/>oraz spowalnia cel o ' + str(0.01 * int(data_dict['item_frost_slow'])) + ' SA'
+    if 'item_light_dmg' in data_dict:
+        html_page = html_page + '<br/>Obrażenia od błyskawic: ' + data_dict['item_light_dmg']
+    if 'item_poison_dmg' in data_dict:
+        html_page = html_page + '<br/>Obrażenia od trucizny: +' + data_dict['item_poison_dmg']
+    if 'item_poison_slow' in data_dict:
+        html_page = html_page + '<br/>oraz spowalnia cel o ' + str(0.01 * int(data_dict['item_poison_slow'])) + ' SA'    
+    if 'item_contra' in data_dict:
+        html_page = html_page + '<br/+'  + data_dict['item_contra'] + '% szans na kontrę po krytyku'
+    if 'item_ac' in data_dict:
+        html_page = html_page + '<br/>Pancerz: ' + data_dict['item_ac']
+    if 'item_res_poison' in data_dict:
+        html_page = html_page + '<br/>Odporność na truciznę +' + data_dict['item_res_poison'] + '%'
+    if 'item_res_fire' in data_dict:
+        html_page = html_page + '<br/>Odporność na ogień +' + data_dict['item_res_fire'] + '%'
+    if 'item_res_frost' in data_dict:
+        html_page = html_page + '<br/>Odporność na zimno +' + data_dict['item_res_frost'] + '%'
+    if 'item_res_light' in data_dict:
+        html_page = html_page + '<br/>Odporność na błyskawice +' + data_dict['item_res_light'] + '%'
+    if 'item_absorb' in data_dict:
+        html_page = html_page + '<br/>Absorbuje do ' + data_dict['item_absorb'] + ' obrażeń fizycznych'
+    if 'item_absorb_m' in data_dict:
+        html_page = html_page + '<br/>Absorbuje do ' + data_dict['item_absorb_m'] + ' obrażeń magicznych'
+    if 'item_blok' in data_dict:
+        html_page = html_page + '<br/>Blok: +' + data_dict['item_blok']
+    if 'item_low_ac' in data_dict:
+        html_page = html_page + '<br/>Niszczy ' + data_dict['item_low_ac'] +' punktów pancerza podczas ciosu'  
+    if 'item_crit' in data_dict:
+        html_page = html_page + '<br/>Cios krtytyczny: +' + data_dict['item_crit'] + '%'
+    if 'item_crit_val' in data_dict:
+        html_page = html_page + '<br/>Siła krytyka fizycznego: +' + data_dict['item_crit_val'] + '%'
+    if 'item_crit_m_val' in data_dict:
+        html_page = html_page + '<br/>Siła krytyka magicznego: +' + data_dict['item_crit_m_val'] + '%'
+    if 'item_wc' in data_dict:
+        html_page = html_page + '<br/>Wszystkie cechy: +' + data_dict['item_wc']
+    if 'item_str' in data_dict:
+        html_page = html_page + '<br/>Siła: +' + data_dict['item_str']
+    if 'item_zr' in data_dict:
+        html_page = html_page + '<br/>Zręczność: +' + data_dict['item_zr']
+    if 'item_int' in data_dict:
+        html_page = html_page + '<br/>Intelekt: +' + data_dict['item_int']
+    if 'item_heal' in data_dict:
+        html_page = html_page + '<br/>Przywraca ' + data_dict['item_heal'] + ' punktów życia podczas walki'
+    if 'item_low_crit' in data_dict:
+        html_page = html_page + '<br/>Podczas obrony szansa na cios krytyczny przeciwnika jest mniejsza o ' + data_dict['item_low_crit'] + ' punkty procentowe'    
+    if 'item_energy' in data_dict:
+        html_page = html_page + '<br/>Energia: +' + data_dict['item_energy']
+    if 'item_mana' in data_dict:
+        html_page = html_page + '<br/>Mana: +' + data_dict['item_mana']
+    if 'item_low_energy' in data_dict:
+        html_page = html_page + '<br/>Podczas obrony niszczy ' + data_dict['item_low_energy'] + ' energii'
+    if 'item_evade' in data_dict:
+        html_page = html_page + '<br/>Unik: +' + data_dict['item_evade']
+    if 'item_hp' in data_dict:
+        html_page = html_page + '<br/>Życie: +' + data_dict['item_hp']
+    if 'item_hp_bon' in data_dict:
+        html_page = html_page + '<br/>+' + data_dict['item_hp_bon'] + ' życia za 1 pkt siły'  
+    if 'item_low_evade' in data_dict:
+        html_page = html_page + '<br/>Podczas ataku unik przeciwnika jest mniejszy o ' + data_dict['item_low_evade']
+    if 'item_low_mana' in data_dict:
+        html_page = html_page + '<br/>Podczas obrony niszczy ' + data_dict['item_low_mana'] + ' many'  
+    if 'item_pierceb' in data_dict:
+        html_page = html_page + '<br/>' + data_dict['item_pierceb'] + ' szans na zablokowanie przebicia'    
+    if 'item_sa' in data_dict:
+        html_page = html_page + '<br/>SA: +' + str(round(0.01 * int(data_dict['item_sa']), 2))
+    if 'item_res' in data_dict:
+        html_page = html_page + '<br/>Niszczenie odporności magicznych o ' + data_dict['item_res'] + '% podczas ciosu'
+    if 'item_wound_dmg' in data_dict:
+        html_page = html_page + '<br/>Głęboka rana, ' + data_dict['item_wound_chance'] + '% szans na +' + data_dict['item_wound_dmg'] + 'obrażeń'
+    if 'item_lvl' in data_dict:
+        html_page = html_page + '<br/>Wymagany poziom: ' + data_dict['item_lvl']
+    if 'item_prof' in data_dict:
+        html_page = html_page + '<br/>Wymagana profesja: ' + data_dict['item_prof']
+    html_page = html_page + '</div>'
+
+    #await pancerz(data_dict['item_prof'], data_dict['item_type'], data_dict['item_rarity'], int(data_dict['item_lvl']), lvl)
+    await symulator_pancerz(data_dict)
+    #await symulator_unik(data_dict)
+    await symulator_abs_fiz(data_dict)
+    await symulator_abs_mag(data_dict)
+
+    #html_page = '<div class="item-tip tip t_item"><b class="item-name">Trupia torba III</b><b class="legendary">* legendarny *</b><span class="type-text">Typ:  Torby</span><br>Mieści 42 przedmioty<br>Nieznany stat: rarity<br><i class="idesc">Nie ma dziur, materiał też niczego sobie... Chyba tobie bardziej się przyda niż umarłym.<br><br>Halloween 2022 r.</i>Wartość: 10</div>'
+    #first_br = html_page.find("*")
+    #second_br = html_page.find("Typ")
+    #third_br = html_page.find("Wartość")
+    #html = html_page[:first_br] + '<br/>' + html_page[first_br:second_br] + '<br/>' + html_page[second_br:third_br] + '<br/>' + html_page[third_br:]
+    #html = '<html><head></head><body>' + html_page + '</body></html>'
+    css = 'body {color: #839496; background: #121620;}'
+    hti.screenshot(html_str=html_page, css_str=css, save_as='page.png')
+
+
+def set_variables(type, rarity, lvl, upgrade_lvl):
+    if type == 'tarcza':
+        p = 0.75
+    elif type == 'helm':
+        p = 0.33
+    elif type == 'buty':
+        p = 0.3
+    elif type == 'rekawice':
+        p = 0.25
+    else:
+        p = 1.0
+
+    if rarity == 'normal':
+        r = 0
+    elif rarity == 'unique':
+        r = 1
+    elif rarity == 'enhanced':
+        r = 2
+    elif rarity == 'heroic':
+        r = 2
+    elif rarity == 'legendary':
+        r = 3
+    elif rarity == 'artefact':
+        r = 4
+
+    x_before = lvl
+    R_before = x_before*x_before + (130 + math.ceil(10*r/3))*x_before + (130 + 390*r)
+
+    x_after = lvl + upgrade_lvl * round(0.03 * lvl)
+    R_after = x_after*x_after + (130 + math.ceil(10*r/3))*x_after + (130 + 390*r)
+    
+    return p, r, x_before, R_before, x_after, R_after
+
+async def symulator_pancerz(data_dict):
+    prof = data_dict['item_prof']
+    type = 'zbroja'
+    rarity = 'legendary'
+    lvl = int(data_dict['item_lvl'])
+    upgrade_lvl = 5
+
+    p, r, x_before, R_before, x_after, R_after = set_variables(type, rarity, lvl, upgrade_lvl)
+
+    if prof == 'w':
+        c = 1.4
+    elif prof == 'p':
+        c = 1.0
+    elif prof == 'b':
+        c = 0.9
+    elif prof == 'm':
+        c = 0.5
+    elif prof == 't':
+        c = 0.7
+    elif prof == 'h':
+        c = 0.8
+    elif all([x in prof for x in ['w', 'p', 'b', 'm', 't', 'h']]):
+        c = 0.9
+    elif all([x in prof for x in ['p', 'm', 't']]):
+        c = 0.75
+    elif all([x in prof for x in ['b', 't', 'h']]):
+        c = 0.8
+    elif all([x in prof for x in ['w', 'p']]):
+        c = 1.2
+    elif all([x in prof for x in ['w', 'b']]):
+        c = 1.15
+    elif all([x in prof for x in ['p', 't']]):
+        c = 0.85
+    elif all([x in prof for x in ['p', 'm']]):
+        c = 0.75
+    elif all([x in prof for x in ['b', 'h']]):
+        c = 0.85
+    elif all([x in prof for x in ['m', 't']]):
+        c = 0.6
+    elif all([x in prof for x in ['t', 'h']]):
+        c = 0.75
+    else:
+        c= 1.0
+    
+    pancerz_before = round(0.02 * p * c * R_before)
+    print(pancerz_before)
+    pancerz_after = round(0.02 * p * c * R_after)
+
+    if pancerz_before == int(data_dict['item_ac']):
+        print(pancerz_after)
+    else:
+        pancerz_addictional_before = int(data_dict['item_ac']) - pancerz_before
+        for i in range(10):
+            pancerz_temp = round(0.003 * i * p * (x_before * x_before + 130 * x_before))
+            print(pancerz_temp)
+            if pancerz_temp == pancerz_addictional_before:
+                n = i
+                break
+        pancerz_addictional_after = round(0.003 * n * p * (x_after * x_after + 130 * x_after))
+        print(pancerz_after + pancerz_addictional_after)
+
+async def symulator_abs_fiz(data_dict):
+    prof = data_dict['item_prof']
+    type = 'zbroja'
+    rarity = 'legendary'
+    lvl = int(data_dict['item_lvl'])
+    upgrade_lvl = 5
+
+    p, r, x_before, R_before, x_after, R_after = set_variables(type, rarity, lvl, upgrade_lvl)
+
+    if prof == 'm':
+        c = 6.0
+    if prof == 't':
+        c = 4.0
+    elif all([x in prof for x in ['p', 'm', 't']]):
+        c = 3.4
+    elif all([x in prof for x in ['p', 'm']]):
+        c = 3.0
+    elif all([x in prof for x in ['m', 't']]):
+        c = 5.0
+    else:
+        c = 0
+    
+    if(type in ['zbroja', 'tarcza', 'helm', 'rekawice', 'buty']):
+        value_base_before = round(0.01 * p * c * R_before)
+        value_base_after = round(0.01 * p * c * R_after)
+    else:
+        value_base_before = 0
+        value_base_after = 0
+
+    if value_base_before == int(data_dict['item_absorb']):
+        print(value_base_after)
+    else:
+        value_addictional_before = int(data_dict['item_absorb']) - value_base_before
+        for n in range(10):
+            value_temp = round(0.12 * n * (x_before * x_before + 130 * x_before))
+            if value_temp == value_addictional_before:
+                value_addictional_after = round(0.12 * n * (x_after * x_after + 130 * x_after))
+                break
+        print(value_base_after + value_addictional_after)
+    
+async def symulator_abs_mag(data_dict):
+    prof = data_dict['item_prof']
+    type = 'zbroja'
+    rarity = 'legendary'
+    lvl = int(data_dict['item_lvl'])
+    upgrade_lvl = 5
+
+    p, r, x_before, R_before, x_after, R_after = set_variables(type, rarity, lvl, upgrade_lvl)
+
+    if prof == 'm':
+        c = 6.0
+    if prof == 't':
+        c = 4.0
+    elif all([x in prof for x in ['p', 'm', 't']]):
+        c = 3.4
+    elif all([x in prof for x in ['p', 'm']]):
+        c = 3.0
+    elif all([x in prof for x in ['m', 't']]):
+        c = 5.0
+    else:
+        c = 0
+    
+    if(type in ['zbroja', 'tarcza', 'helm', 'rekawice', 'buty']):
+        value_base_before = round(0.005 * p * c * R_before)
+        value_base_after = round(0.005 * p * c * R_after)
+    else:
+        value_base_before = 0
+        value_base_after = 0
+
+    if value_base_before == int(data_dict['item_absorb_m']):
+        print(value_base_after)
+    else:
+        value_addictional_before = int(data_dict['item_absorb_m']) - value_base_before
+        for n in range(10):
+            value_temp = round(0.12 * n * (x_before * x_before + 130 * x_before))
+            if value_temp == value_addictional_before:
+                value_addictional_after = round(0.12 * n * (x_after * x_after + 130 * x_after))
+                break
+        print(value_base_after + value_addictional_after)
+
+async def symulator_unik(data_dict):
+    prof = data_dict['item_prof']
+    type = 'zbroja'
+    rarity = 'legendary'
+    lvl = int(data_dict['item_lvl'])
+    upgrade_lvl = 5
+
+    p, r, x_before, R_before, x_after, R_after = set_variables(type, rarity, lvl, upgrade_lvl)
+
+    if prof == 'b':
+        c = 1
+    else:
+        c = 0
+    
+    if(type == 'zbroja'):
+        unik_base_before = round(1/3 * c * x_before)
+        unik_base_after = round(1/3 * c * x_after)
+    else:
+        unik_base_before = 0
+        unik_base_after = 0
+
+    if unik_base_before == int(data_dict['item_evade']):
+        print(unik_base_after)
+    else:
+        unik_addictional_before = int(data_dict['item_evade']) - unik_base_before
+        for i in range(10):
+            unik_temp = round(0.1 * i * x_before)
+            if unik_temp == unik_addictional_before:
+                n = i
+                break
+        unik_addictional_after = round(0.1 * n * x_after)
+        print(unik_base_after + unik_addictional_after)
+
+
+async def follow_posts(link):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(link) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
+    table = soup.find('table', id_='posts')
+    table = soup.find('tbody')
+    print(table)
+
+
+async def listen_for_new_items(link, clan):
+    legendary_items = []
+    legendary_items_links = []
+    first_item_id = 0
+
+    try:
+        last_item = await get_data_in_db_last_item(clan)
+    except Exception as e:
+        print(e)
+        path = 'database.db'
+        con = sqlite3.connect(path)
+        cur = con.cursor()
+        cur.execute("CREATE TABLE last_item(clan, item_id)")
+        last_item = str(await get_data_in_db_last_item(clan))
+    #print(last_item)
+
+    async with aiohttp.ClientSession(cookies=sd.cookies, headers=sd.headers) as session:
+        async with session.get(link) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
+    items = soup.find_all('div', class_='item col-md-12 row-shadow')
+
+    for i in items:
+        #print(i)
+        try:
+            item_id = str(i.find('a', class_='itemborder')['href'])[7:]
+        except:
+            item_id = str(i.find('a', class_='empty-replacer hastip')['href'])[7:]
+        if(first_item_id == 0):
+            first_item_id = item_id
+        #print(first_item_id)
+        #print(item_id)
+
+        if(last_item is None):
+            await add_data_in_db_last_item(clan, item_id)
+            return
+        if(last_item == first_item_id):
+            print("Dane aktualne")
+            return
+        if(last_item == item_id):
+            await update_data_in_db_last_item(clan, first_item_id)
+            print("Dane zaktualizowane")
+            return
+        #print(str(item_id))
+        #if(item_id == await get
+        #print(i)
+        for item in i.find_all('img'):
+            data = str(item["data-stats"])
+            data = data.split(";")
+            item_name = data[0]
+            item_name = item_name[:item_name.find("||")]
+            #print(item_name)
+            #print(item_name)
+            #print(data)
+            for single_data in data:
+                if "rarity=" in single_data:
+                    item_rarity = single_data[7:]
+                    #print(item_rarity)
+                    if('heroic' in item_rarity):
+                        legendary_items.append(item_name)
+                        legendary_items_links.append(str(item["src"]))
+                        #print(legendary_items)
+                    break
+        if(len(legendary_items) > 0):
+            
+            mob_name = i.find('a', class_='hastip').string
+            for e2_name in g.mob_name_e2:
+                if(unidecode(e2_name.lower()) in unidecode(mob_name.lower())):
+                    #print(unidecode(e2_name.lower()))
+                    #print(unidecode(mob_name.lower()))
+                    #print(e2_name)
+                    mob_name = e2_name
+                    break
+            else:
+                mob_name = mob_name[27:mob_name.find("(")]
+            #print(mob_name)
+
+            players = i.find_all('div', class_='player hastip')
+            #print(str(players))
+            if(len(players) == 1):
+                player_nickname = i.find('div', class_='player hastip')["data-tip"]
+                player_nickname = player_nickname[:player_nickname.find(" (")]
+                try:
+                    channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1064671672822677594)
+                except:
+                    channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
+                item_link = legendary_items_links[0]
+                character_link = "https://micc.garmory-cdn.cloud" + str(i.find('div', class_='player hastip')["data-bg"])
+                await generate_image_when_legendary(player_nickname, item_name, mob_name, 1, item_link, character_link)
+                await channel_last_item.send(files=interactions.File("img/legendary/" + unidecode(player_nickname) + ".png"))
+                os.remove("img/legendary/" + unidecode(player_nickname) + ".png")
+                #await channel_last_item.send(content=player_nickname + " zdobył(a) " + item_name + " z potwora " + mob_name + " w grupie 1-osobowej")
+                print(player_nickname + " zdobył(a) " + item_name + " z potwora " + mob_name + " w grupie 1-osobowej")
+                await asyncio.sleep(1)
+            else:
+                await asyncio.sleep(0.5)
+
+                async with aiohttp.ClientSession(cookies=sd.cookies, headers=sd.headers) as session:
+                    async with session.get(link + "item-" + str(item_id)) as response:
+                        soup2 = BeautifulSoup(await response.text(), 'html.parser')
+                #print(soup2)
+
+                for item_drop in soup2.find_all('p', class_='divide catcher'):
+                    item_drop = str(item_drop)
+                    item_catched = item_drop[26:item_drop.find(' <b class="color">')]
+                    who_cathced = item_drop[item_drop.find('</b>')+5:item_drop.find('</p>')]
+                    for single_player in players:
+                        nick_temp = str(single_player["data-tip"])
+                        nick_temp = nick_temp[:nick_temp.find(" (")]
+                        #print(nick_temp)
+                        #print(who_cathced)
+                        if(nick_temp == who_cathced):
+                            character_link = "https://micc.garmory-cdn.cloud" + str(single_player["data-bg"])
+                            break
+                    #print(item_catched)
+                    #print(who_cathced)
+                    if item_catched in legendary_items:
+                        try:
+                            channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1064671672822677594)
+                        except:
+                            channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
+                        #print(str(legendary_items.index(item_catched)))
+                        #print(str(legendary_items_links[legendary_items.index(item_catched)]))
+                        item_link = legendary_items_links[legendary_items.index(item_catched)]
+                        await generate_image_when_legendary(who_cathced, item_catched, mob_name, len(players), item_link, character_link)
+                        await channel_last_item.send(files=interactions.File("img/legendary/" + unidecode(who_cathced) + ".png"))
+                        os.remove("img/legendary/" + unidecode(who_cathced) + ".png")
+                        #await channel_last_item.send(content=who_cathced + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(players) + "-osobowej")
+                        print(who_cathced + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(len(players)) + "-osobowej")
+                        await asyncio.sleep(1)
+                if(len(soup2.find_all('p', class_='divide catcher')) == 0):
+                    try:
+                        channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1064671672822677594)
+                    except:
+                        channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
+                    for item_catched in legendary_items:
+                        item_link = legendary_items_links[legendary_items.index(item_catched)]
+                        await generate_image_when_legendary("Nieznany ktoś", item_catched, mob_name, len(players), item_link, 0)
+                        await channel_last_item.send(files=interactions.File("img/legendary/" + unidecode("Nieznany ktoś") + ".png"))
+                        os.remove("img/legendary/" + unidecode("Nieznany ktoś") + ".png")
+                        print("Ktoś" + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(len(players)) + "-osobowej")
+                        await asyncio.sleep(1)
+            
+            legendary_items.clear()
+            legendary_items_links.clear()
+
+    #IN CASE LAST ITEM IS NOT ON FIRST PAGE        
+    await update_data_in_db_last_item(clan, first_item_id)
+    print("Dane zaktualizowane, nie znaleziono ostatniego itemu")
+
+    #print(str(len(soup.find_all('a', class_='btn next'))))
+    #print(str(soup.find('a', class_='btn next')['href']))
+    #if len(soup.find_all('a', class_='btn next')) > 0:
+    #    await listen_for_new_items(link + str(soup.find('a', class_='btn next')['href']), clan)
+
+async def e2_list():
+    async with aiohttp.ClientSession() as session:
+        async with session.get("https://margohelp.pl/elity-ii") as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
+    e2 = soup.find_all('div', class_='heros-box')
+    for i in e2:
+        mob_name = str(i.find('b'))
+        mob_name = mob_name[3:mob_name.find(" (")]
+        print("'" + mob_name + "',")
+
+async def generate_image_when_legendary(nickname, item, enemy, group, item_link, character_link):
+    #myFont = ImageFont.truetype('Roboto-Regular.ttf', 16)
+    image = Image.open("img/legendary/template2.png") 
+    W, H = image.size
+    #print(W, H)
+    #image = Image.new('RGB', size, bgColor)
+    draw = ImageDraw.Draw(image)
+
+    myMessage = nickname
+    myFont = ImageFont.truetype("arial.ttf", 50)
+    w, h = draw.textsize(myMessage, font=myFont)
+    x1, y1, x2, y2 = [0, 40, W, 90]
+    x = (x2 - x1 - w)/2 + x1
+    y = (y2 - y1 - h)/2 + y1
+    draw.text((x, y), myMessage, align='center', font=myFont, fill='black')
+
+    myMessage = 'zdobył(a)'
+    myFont = ImageFont.truetype("arial.ttf", 30)
+    w, h = draw.textsize(myMessage, font=myFont)
+    x1, y1, x2, y2 = [0, 110, W, 140]
+    x = (x2 - x1 - w)/2 + x1
+    y = (y2 - y1 - h)/2 + y1
+    draw.text((x, y), myMessage, align='center', font=myFont, fill='black')
+
+    myMessage = item
+    myFont = ImageFont.truetype("arial.ttf", 40)
+    w, h = draw.textsize(myMessage, font=myFont)
+    x1, y1, x2, y2 = [0, 160, W, 200]
+    x = (x2 - x1 - w)/2 + x1
+    y = (y2 - y1 - h)/2 + y1
+    draw.text((x-1, y), myMessage, align='center', font=myFont, fill='black')
+    draw.text((x+1, y), myMessage, align='center', font=myFont, fill='black')
+    draw.text((x, y-1), myMessage, align='center', font=myFont, fill='black')
+    draw.text((x, y+1), myMessage, align='center', font=myFont, fill='black')
+    draw.text((x, y), myMessage, align='center', font=myFont, fill='orange')
+
+    myMessage = 'z potwora ' + enemy
+    myFont = ImageFont.truetype("arial.ttf", 30)
+    w, h = draw.textsize(myMessage, font=myFont)
+    x1, y1, x2, y2 = [0, 220, W, 250]
+    x = (x2 - x1 - w)/2 + x1
+    y = (y2 - y1 - h)/2 + y1
+    draw.text((x, y), myMessage, align='center', font=myFont, fill='black')
+
+    if(group > 1):
+        myMessage = 'w grupie ' + str(group) + "-osobowej"
+        myFont = ImageFont.truetype("arial.ttf", 30)
+        w, h = draw.textsize(myMessage, font=myFont)
+        x1, y1, x2, y2 = [0, 270, W, 300]
+        x = (x2 - x1 - w)/2 + x1
+        y = (y2 - y1 - h)/2 + y1
+        draw.text((x, y), myMessage, align='center', font=myFont, fill='black')
+
+    legendary_background = Image.open("img/legendary/background_legendary.png")
+    image.paste(legendary_background, (400-32, 320))
+
+    item_gif = Image.open(requests.get(item_link, stream=True).raw)
+    item_gif = item_gif.resize((64, 64))
+    item_gif = item_gif.convert("RGBA")
+    print(item_gif.mode)
+    image.paste(item_gif, (400-32, 320), mask=item_gif)
+
+    image.save('img/legendary/' + unidecode(nickname) + '.png', "PNG")
+
+
+async def get_data_bans(ctx, df, world, link, page, embed):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(link + str(page)) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
+    table = soup.find('table', class_='table--separators w-100')
+    table = soup.find('tbody')
+    try:
+        length = len(table.find_all('tr'))
+    except:
+        length = 0
+    if(length>1):
+        for i in table.find_all('tr'):
+            data = i.find_all("td")
+            profile_link = data[1].a["href"]
+            profile_link = profile_link[profile_link.find(",")+1:profile_link.find("#")]
+                
+            list = [profile_link]
+            #print(profile_link)
+            if(not(df.loc[df['Id'] == profile_link].any().all())):
+                df = df.append({'Id':profile_link}, ignore_index=True)
+            #df.loc[len(df)] = list
+        await asyncio.sleep(0.5)
+        await get_data_bans(ctx, df, world, link, page+1, embed)
+    else:
+        print(df)
+        embed_value = ""
+        df_bans_col = ({'Id':["temp"], 'Nickname':["Temp"],  'Status':["Temp"]})
+        df_bans = pd.DataFrame(df_bans_col)
+        df_bans = df_bans.drop(df_bans.index[[0]])
+
+        for index, row in df.iterrows():
+            async with aiohttp.ClientSession() as session:
+                async with session.get("https://www.margonem.pl/profile/view," + row['Id']) as response:
+                    soup = BeautifulSoup(await response.text(), 'html.parser')
+            player_nickname = soup.find('div', class_='brown-box profile-header mb-4').span.string[17:-12]
+            try:
+                status = soup.find('div', class_='profile-header__status').string[1:-1]
+            except:
+                status = None
+            print(player_nickname + "|" + str(status))
+            if(status is not None):
+                df_bans = df_bans.append({'Id':row['Id'], 'Nickname':player_nickname, 'Status':status}, ignore_index=True)
+                embed_value = embed_value + player_nickname + " : " + status + "\n"
+
+            await asyncio.sleep(1)  
+
+        print(df_bans)
+        embed_value = embed_value[:-1]
+        embed.add_field(name="Świat " + world, value=embed_value, inline=False)
+
+
+async def send_message_via_ll(ctx, message):
+    groove_cookie_string = "; ".join([str(x)+"="+str(y) for x,y in sd.groove_cookies.items()])
+    try:
+        ws = create_connection(sd.groove_websocket, header = sd.groove_headers, cookie = groove_cookie_string)
+        ws.send('42' + json.dumps(["data",{"txt":message + " - dodano przez dc przez " + ctx.author.user.username,"action":"msgToClan","clan":"blade_of_destiny_narwhals","clanID":1834,"aid":"5897579"}]))
+        ws.close()
+        return 1
+    except:
+        return 3

@@ -25,6 +25,7 @@ async def on_start():
     except:
         g.channel_quiz = await interactions.get(bot, interactions.Channel, object_id=1085193552864235591)
     my_task.start()
+    look_for_new_item.start()
 
 
 @bot.command(
@@ -666,6 +667,10 @@ async def dropy_gracza(ctx: interactions.CommandContext):
 @create_task(IntervalTrigger(60))
 async def my_task():
     await u.players_online_run_forever("Narwhals")
+
+@create_task(IntervalTrigger(60))
+async def look_for_new_item():
+    await u.listen_for_new_items("https://grooove.pl/blade_of_destiny_narwhals/", "bod")
 
 @create_task(IntervalTrigger(3))
 async def zagadka_delay():
@@ -1351,5 +1356,156 @@ async def konkurs(ctx: interactions.CommandContext):
     embed=interactions.Embed(title="Wyniki konkursu Łowcy herosów")
     await u.get_google_sheets_data(ctx, embed)
     await ctx.send(embeds=embed)
+
+
+@bot.command(
+    name="hti",
+    description="HTML to image",
+    scope= [
+        sd.dc_discord_bot_testy
+    ],
+    options = [
+        interactions.Option(
+            type=interactions.OptionType.STRING,
+            name="link",
+            description="Link do przedmiotu ze strony margohelp.pl",
+            required=True,
+        ),
+        interactions.Option(
+            type=interactions.OptionType.INTEGER,
+            name="poziom",
+            description="Poziom na który ulepszyć przedmiot",
+            required=True,
+        ),
+    ],
+)
+async def hti(ctx: interactions.CommandContext, link: str, poziom: int):
+    await u.generate_image_from_html(link, poziom)
+
+
+@bot.command(
+    name="posty",
+    description="Posty",
+    scope= [
+        sd.dc_discord_bot_testy,
+    ],
+    options = [
+        interactions.Option(
+            type=interactions.OptionType.STRING,
+            name="link",
+            description="Link",
+            required=True,
+        ),
+    ]
+)
+async def posty(ctx: interactions.CommandContext, link: str):
+    await u.follow_posts(link)
+
+
+@bot.command(
+    name="nowe_itemy",
+    description="Nowe itemy",
+    scope= [
+        sd.dc_discord_bot_testy,
+    ],
+    options = [
+        interactions.Option(
+            type=interactions.OptionType.STRING,
+            name="link",
+            description="Link",
+            required=True,
+        ),
+    ]
+)
+async def nowe_itemy(ctx: interactions.CommandContext, link: str):
+    await u.listen_for_new_items(link, "bod")
+
+
+@bot.command(
+    name="e2_lista",
+    description="Lista e2",
+    scope= [
+        sd.dc_discord_bot_testy,
+    ],
+)
+async def e2_lista(ctx: interactions.CommandContext):
+    await u.e2_list()
+
+
+@bot.command(
+    name="obrazek_legenda",
+    description="Obrazek legenda",
+    scope= [
+        sd.dc_discord_bot_testy,
+    ],
+)
+async def obrazek_legenda(ctx: interactions.CommandContext):
+    await u.generate_image_when_legendary("Neeyo", "Jakas legenda", "Jakis potwor", 5)
+    try:
+        channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1064671672822677594)
+    except:
+        channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
+    await channel_last_item.send(files=interactions.File("img/legendary/" + "Neeyo" + ".png"))
+
+
+@bot.command(
+    name="kary",
+    description="Wyświetla liste ukaranych graczy na świecie",
+    scope= [
+        sd.dc_discord_bot_testy,
+    ],
+)
+async def kary(ctx: interactions.CommandContext):
+    swiat = "Narwhals"
+
+    df_col = ({'Id':["temp"]})
+    df = pd.DataFrame(df_col)
+    df = df.drop(df.index[[0]])
+    link = "https://www.margonem.pl/ladder/players,"+ swiat +"?page="
+    page = 1
+
+    await ctx.send("Przez zlagowane serwery proces może zająć wiele minut, odpowiem gdy skończę")
+
+    embed=interactions.Embed(title="Lista ukaranych graczy")
+    try:
+        await u.get_data_bans(ctx, df, swiat, link, page, embed)
+        try:
+            channel = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
+            await channel.send(embeds = embed)
+        except:
+            pass
+    except:
+        try:
+            channel = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
+            await channel.send(content="Jakiś błąd, prawdopodobnie błąd serwera")
+        except:
+            pass
+    await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "kary - Narwhals")
+
+
+@bot.command(
+    name="dodaj_wiadomosc_przez_ll",
+    description="Dodaje wiadomosc przez ll",
+    scope= [
+        sd.dc_discord_bot_testy,
+    ],
+    options = [
+        interactions.Option(
+            type=interactions.OptionType.STRING,
+            name="message",
+            description="Wiadomość",
+            required=True,
+            autocomplete=True,
+        ),
+    ],
+)
+async def dodaj_wiadomosc_przez_ll(ctx: interactions.CommandContext, message: str):
+    if(await u.send_message_via_ll(ctx, message) == 1):
+        await ctx.send("Pomyślnie wysłano wiadomość: " + message)
+    elif(await u.send_message_via_ll(ctx, message) == 2):
+        await ctx.send("Brak uprawnień do użycia komendy, tymczasowo ograniczone")
+    elif(await u.send_message_via_ll(ctx, message) == 3):
+        await ctx.send("Wystąpił błąd")
+
 
 bot.start()

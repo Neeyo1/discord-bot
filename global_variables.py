@@ -1,6 +1,6 @@
 import pandas as pd
 def init():
-    global bicia, uni, hera, legi, rok, TanrothLegi, TanrothHera, TanrothUni, wynikiNick, wynikiId, wynikiRN, wynikiProfil, wynikiRank, page, position, store, store_quiz_user, store_quiz_server, has_quiz_started, quiz_cd, current_riddle, current_answer, quiz_task, quiz_number, channel_quiz, riddles, mob_lvl_heros, mob_lvl_tytan, mob_name_tytan, df_players_online_run_forever, ros_tanroth, ros_teza, ros_magua, ros_przyzy, ros_lowka, ros_zoons, ros_arcy, ros_renio, ros_krolik, ros_orla, west_tanroth, west_teza, west_magua, west_przyzy, west_lowka, west_zoons, west_arcy, west_renio, west_krolik, west_orla, bot
+    global bicia, uni, hera, legi, rok, TanrothLegi, TanrothHera, TanrothUni, wynikiNick, wynikiId, wynikiRN, wynikiProfil, wynikiRank, page, position, store, store_quiz_user, store_quiz_server, has_quiz_started, quiz_cd, current_riddle, current_answer, quiz_task, quiz_number, channel_quiz, riddles, mob_lvl_heros, mob_lvl_tytan, mob_name_tytan, mob_name_e2, df_players_online_run_forever, ros_tanroth, ros_teza, ros_magua, ros_przyzy, ros_lowka, ros_zoons, ros_arcy, ros_renio, ros_krolik, ros_orla, west_tanroth, west_teza, west_magua, west_przyzy, west_lowka, west_zoons, west_arcy, west_renio, west_krolik, west_orla, bot
 
     #lb
     bicia = 0
@@ -91,22 +91,115 @@ def init():
         'tanroth'
         ]
     
+    mob_name_e2 = [
+        'Mushita',
+        'Kotołak Tropiciel',
+        'Shae Phu',
+        'Zorg Jednooki Baron',
+        'Władca Rzek',
+        'Gobbos',
+        'Tyrtajos',
+        'Tollok Shimger',
+        'Szczęt alias Gładki',
+        'Razuglag Oklash',
+        'Agar',
+        'Foverk Turrim',
+        'Owadzia Matka',
+        'Vari Kruger',
+        'Furruk Kozug',
+        'Tollok Atamatu',
+        'Tollok Utumutu',
+        'Goplana',
+        'Choukker',
+        'Wyznawca ciemnych mocy',
+        'Mazurnik Przybrzeżny',
+        'Łowca czaszek',
+        'Grabarz świątynny',
+        'Podły zbrojmistrz',
+        'Nieumarły krzyżowiec',
+        'Szkielet władcy żywiołów',
+        'Grubber Ochlaj',
+        'Morthen',
+        'Żelazoręki Ohydziarz',
+        'Kambion',
+        'Miłośnik Łowców',
+        'Miłośnik rycerzy',
+        'Miłośnik magii',
+        'Młody Jack Truciciel',
+        'Wójt Fistuła',
+        'Krab pustelnik',
+        'Królowa śniegu',
+        'Teściowa Rumcajsa',
+        'Pogromca gryfów',
+        'Pogromczyni Mantikor',
+        'Poskramiacz hydr',
+        'Sheba Orcza Szamanka',
+        'Burkog Lorulk',
+        'Jertek Moxos',
+        'Berserker Amuno',
+        'Stworzyciel',
+        'Fodug Zolash',
+        'Mistrz Worundriel',
+        'Goons Asterus',
+        'Adariel',
+        'Duch władcy klanów',
+        'Ogr Stalowy Pazur',
+        'Bragarth myśliwy dusz',
+        'Fursharag pożeracz umysłów',
+        'Ziuggrael strażnik królowej',
+        'Lusgrathera królowa pramatka',
+        'Borgoros Garamir III',
+        'Chryzoprenia',
+        'Cerasus',
+        'Czempion Furboli',
+        'Torunia Ankelwald',
+        'Breheret żelazny łeb',
+        'Mysiur myświórowy król',
+        'Sadolia nadzorczyni Hurys',
+        'Gothardus kolekcjoner głów',
+        'Sataniel skrytobójca',
+        'Bergermona krwawa hrabina',
+        'Annaniel wysysacz marzeń',
+        'Zufulus smakosz serc',
+        'Marlloth Malignitas',
+        'Mocny Maddoks',
+        'Rycerz z za małym mieczem',
+        'Arachniregina Colosseus',
+        'Pancerny Maddok',
+        'Silvanasus',
+        'Dendroculus',
+        'Tolypeutes',
+        'Cuaitl Citlalin',
+        'Pogardliwa Sybilla',
+        'Yaotl',
+        'Quetzalcoatl',
+        'Chopesz',
+        'Neferkar Set',
+        'Chaegd Agnrakh',
+        'Vaenra Charkhaam',
+        'Terrozaur',
+        'Nymphemonia',
+        'Zorin',
+        'Artenius',
+        'Furion'
+        ]
+    
     #players_online_run_forever
     df_players_online_run_forever_col = ({'Nickname':["temp"], 'Minutes_online':[60], 'Account_id':[1111111], 'Char_id':[1111]})
     df_players_online_run_forever = pd.DataFrame(df_players_online_run_forever_col)
     df_players_online_run_forever = df_players_online_run_forever.drop(df_players_online_run_forever.index[[0]])
 
     #players list
-    ros_tanroth = ["Ayenn", "Soboll", "Ratheos", "Lascove", "Lubuski Talent", "Mistrz Emifx", "Knoperrs Kokosowy", "Kariston", "Lizeer", "Kompleks Steryda", "Romaren", "Trop kox", "Pinguinek", "Esechjon", "Efate", "FreeFall", "dr reh inż Fri", "Flights", "Whitely", "Fluki", "Rawage", "Nocny Zonk", "Łoś Bibiś", "Shirukibi", "Thahku", "Tamirath", "Antharax", "Teximus", "Cattney", "Roswell", "Biały Lotus", "Moafio", "Popsuted Trop", "Mleczna Milka", "Fallen Wolf", "Mokotowiak", "Rebam", "Delattre", "Puk Puk To Ja", "Po Prostu Sammy", "The Hrynio", "Javek", "Adean", "Soból", "Santhos", "Kakarrot", "Skillzone", "Yamatto"]
-    ros_teza = ["Elisha", "Lubisz Bigosik", "Katucham", "Nikiss", "Kapitan Chak", "Emifx", "Be Li Bi", "Karistonka", "Wąż boa", "Pinguin", "Esechion", "Efavtu", "Bapple Jack", "Sethaviel", "Bimkie Guy", "Aziz Kallah", "Nikushimi", "Vexez", "Kolorowy Ponczek", "Kolorowa Delicja", "szagor", "Moławio", "Unluckyy Boyy", "Seetu", "Ikohn", "Kinnerad", "Hrynionafide", "Dymcio", "Yerpen", "Sobólowaty", "Sant", "Lokfuhrer"]
-    ros_magua = ["Laileen", "Ćpałeś", "Emisiek", "Ellectro", "Eysu", "Baksior", "Darkly", "Mejdż Riwejdż", "Ścichapęk", "Rachel Platten", "Inoeki", "Anayessa", "Smakosz Kiwi", "Michał Cartman", "Słoneczny Zarządca", "Go Ahead", "Hrynio Love", "Kochion", "Teturgoth", "Dos Santos", "Szalony Wojtula", "Zuy Dawid"]
-    ros_przyzy = ["Ninde", "hahaha beka z cb lol", "Katudałn", "Quarsin", "Flaruch", "Valar Morghulis", "Ukered", "ma ktos paje", "Esechionka", "Jędrek Konfident", "Latts Razzi", "Brownly", "Ushuriel", "Evelienn", "Manos Arriba", "Hiddens", "Catte Latte", "Toxic Muchomorek", "Kiui Majipan", "Chryzantem Złocisty", "Kung Fu Adi", "Javcio", "Szoból", "Howard", "Rynuś"]
-    ros_lowka = ["Virgax", "Szczebiotka", "Nimaster", "Chromosom z Fobosa", "Karistonkeł", "Yazaey", "Noob", "Jesko", "Takeru", "Crimsonly", "Lethaviel", "Zonkuś", "Garram Bad", "Riwaldox", "Alicja Delicja", "Hot Bombel", "Meshy", "Ikoon", "Shaarmus", "Eriten", "Attash", "Fochmistrz", "Ale Mad", "Sebbav"]
-    ros_zoons = ["Virgax", "Szczebiotka", "Chromosom z Fobosa", "Yazaey", "Takeru", "Crimsonly", "Lethaviel", "Zonkuś", "Riwaldox", "Cattcia", "Alicja Delicja", "Hot Bombel", "Meshy", "Ikoon", "Fochmistrz", "Ale Mad", "Sebbav", "Zły Daimyo"]
-    ros_arcy = ["Wrzucam Do Pieca", "Dokąd nocą tupta jeż", "Eysunaf", "czwarty skład nigdy", "Cobratate", "Lokadr", "dawid uwu mag", "Kazel", "La Liberta", "Mag Emiś", "Esencion", "trzeci skład w nocy", "Mighty Wolf", "Young Moko", "dawać pierwszy skład"]
-    ros_renio = ["Payne", "Ojciec Platynov", "Sobollxtorpeda", "Avonex", "Dymciowa", "Pierwsza Klasa", "Catt", "Krayt", "Redly", "Ese", "Sosnowiczanin", "Noiessa", "Rosweluś", "Latrivan", "Takermin", "Pingeł", "Hezuuś", "Elektronicky Mordulec", "Daksanius", "Arnielsem", "Olivitess", "Toverk Furrim", "Etaine", "Dredge", "Helmut Byk", "Pe Pe Ga", "Dark Wolfik", "Norman Parke", "Moawio", "Insel"]
-    ros_krolik = ["Casmot", "Rozpacz", "Katudar", "Cold Bombel", "B o o b a", "Blackly", "Patoshi", "Sobólek", "Thrawn", "Emisiowaty", "Szkoda", "Rycerz Ortalionu", "Bździągwa", "Pukecz", "Rudy Z Wrocławia", "Lucypher", "Bodawio", "Zua Flarusia", "Vexteron", "Vadosu", "Xaiket", "Obrona Sycylijska", "Smakołysz Muszity", "Karistołek", "Lil Moko", "Fiubździu", "One six nine", "Sir Flookie"]
-    ros_orla = ["Katudar", "Vadosu", "Xaiket", "Obrona Sycylijska", "Smakołysz Muszity", "Karistołek", "Lil Moko", "Fiubździu", "One six nine", "Sir Flookie"]
+    ros_tanroth = ["Ayenn", "Soboll", "Ratheos", "Lascove", "Lubuski Talent", "Mistrz Emifx", "Knoperrs Kokosowy", "Kariston", "Lizeer", "Kompleks Steryda", "Romaren", "Trop kox", "Pinguinek", "Esechjon", "Efate", "FreeFall", "dr reh inż Fri", "Kakarrot", "Flights", "Flookie", "Rawage", "Nocny Zonk", "Łoś Bibiś", "Shirukibi", "Thahku", "Tamirath", "Antharax", "Teximus", "Cattney", "Roswell", "Moafio", "Popsuted Trop", "Lokfuhrer", "Mleczna Milka", "Yamatto", "Fallen Wolf", "Mokotowiak", "Rebam", "Delattre", "Puk Puk To Ja", "Po Prostu Sammy", "The Hrynio", "Javek", "Adean", "Soból", "Santhos"]
+    ros_teza = ["Elisha", "Lubisz Bigosik", "Katucham", "Nikiss", "Kapitan Chak", "Emifx", "Be Li Bi", "Karistonka", "Wąż boa", "Pinguin", "Esechion", "Efavtu", "Bapple Jack", "Sethaviel", "Bimkie Guy", "Vexez", "Kolorowy Ponczek", "Kolorowa Delicja", "Moławio", "Unluckyy Boyy", "Seetu", "Ikohn", "Kinnerad", "Hrynionafide", "Dymcio", "Yerpen", "Sobólowaty", "Sant"]
+    ros_magua = ["Laileen", "Ćpałeś", "Emisiek", "Ellectro", "Eysu", "Baksior", "Mejdż Riwejdż", "Ścichapęk", "Rachel Platten", "Inoeki", "Anayessa", "Smakosz Kiwi", "Słoneczny Zarządca", "Go Ahead", "Hrynio Love", "Kochion", "Teturgoth", "Dos Santos", "Zuy Dawid"]
+    ros_przyzy = ["Ninde", "hahaha beka z cb lol", "Katudałn", "Quarsin", "Flaruch", "Valar Morghulis", "Ukered", "ma ktos paje", "Esechionka", "Jędrek Konfident", "Latts Razzi", "Ushuriel", "Evelienn", "Manos Arriba", "Hiddens", "Catte Latte", "Toxic Muchomorek", "Kiui Majipan", "Chryzantem Złocisty", "Kung Fu Adi", "Rynuś", "Javcio", "Szoból", "Howard"]
+    ros_lowka = ["Virgax", "Szczebiotka", "Nimaster", "Chromosom z Fobosa", "Karistonkeł", "Yazaey", "Noob", "Jesko", "Ojciec Platynov", "Takeru", "Lethaviel", "Zonkuś", "Garram Bad", "Riwaldox", "Alicja Delicja", "Hot Bombel", "Meshy", "Ikoon", "Shaarmus", "Eriten", "Attash", "Reece James", "Fochmistrz", "Ale Mad", "Sebbav", "Nikushimi"]
+    ros_zoons = ["Virgax", "Szczebiotka", "Chromosom z Fobosa", "Yazaey", "Takeru", "Payne", "Lethaviel", "Zonkuś", "Riwaldox", "Cattcia", "Alicja Delicja", "Hot Bombel", "Meshy", "Ikoon", "Fochmistrz", "Ale Mad", "Sebbav", "Zły Daimyo"]
+    ros_arcy = ["Wrzucam Do Pieca", "Czarek Eklerek", "Dokąd nocą tupta jeż", "Eysunaf", "La Liberta", "czwarty skład nigdy", "Cobratate", "Lokadr", "dawid uwu mag", "Kazel", "Mighty Wolf", "Mag Emiś", "Esencion", "trzeci skład w nocy", "Young Moko", "dawać pierwszy skład"]
+    ros_renio = ["Sobollxtorpeda", "Avonex", "Dymciowa", "Pierwsza Klasa", "Catt", "Krayt", "Ese", "Sosnowiczanin", "Noiessa", "Rosweluś", "Latrivan", "Takermin", "Pingeł", "Hezuuś", "Elektronicky Mordulec", "Dredge", "Daksanius", "Arnielsem", "Olivitess", "Norman Parke", "Toverk Furrim", "Etaine", "Helmut Byk", "Pe Pe Ga", "Cindy Chan", "Moawio", "Insel"]
+    ros_krolik = ["Casmot", "Rozpacz", "Katudar", "Cold Bombel", "Sobólek", "B o o b a", "Patoshi", "Thrawn", "Emisiowaty", "Szkoda", "Lord Oberyn", "Bździągwa", "Rudy Z Wrocławia", "Bodawio", "Zua Flarusia", "Vexteron", "Vadosu", "Lucypher", "Smakołysz Muszity", "Karistołek", "Lil Moko", "Fiubździu", "One six nine", "Wolf Joqer", "Sir Flookie"]
+    ros_orla = ["Katudar", "Vadosu", "Lucypher", "Smakołysz Muszity", "Karistołek", "Lil Moko", "Fiubździu", "One six nine", "Wolf Joqer", "Sir Flookie"]
 
     west_tanroth = ["Młody Charlie", "Shiranoy", "Hozukimaru", "Opunaa", "Yetiuszek", "Brad Bellick", "Teriash", "Vexuss", "Piłem aż Wypiłem", "Treno", "Mr Valex", "Głośnik", "Ałuś"]
     west_teza = ["Akri Partenopajos", "Agilla", "Valeksik", "Presir"]
