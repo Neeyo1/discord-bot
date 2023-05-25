@@ -1043,7 +1043,7 @@ async def players_online_run_forever(swiat):
         #if(ros_arcy_count >= players_online_to_ping):
         #    msg = "Możliwy Arcy, " + str(ros_arcy_count) + " rosów online"
         #    await channel.send(content=msg)
-        if(ros_renio_count >= players_online_to_ping):
+        if(ros_renio_count >= 4):
             msg = "Możliwy Renio, " + str(ros_renio_count) + " rosów online"
             await channel.send(content=msg)
         #if(ros_krolik_count >= players_online_to_ping):
@@ -2089,7 +2089,7 @@ async def listen_for_new_items(link, clan):
                 if "rarity=" in single_data:
                     item_rarity = single_data[7:]
                     #print(item_rarity)
-                    if('heroic' in item_rarity):
+                    if('legendary' in item_rarity):
                         legendary_items.append(item_name)
                         legendary_items_links.append(str(item["src"]))
                         #print(legendary_items)
