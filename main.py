@@ -1,11 +1,10 @@
 import pandas as pd
 import requests
+import time
 from bs4 import BeautifulSoup
 from unidecode import unidecode
 import interactions
-from interactions import Button, ButtonStyle, SelectMenu, SelectOption, ClientPresence, StatusType, PresenceActivity, PresenceActivityType, CommandContext, ComponentContext, Modal, TextInput, TextStyleType
-from interactions.ext.files import command_send
-from interactions.ext.tasks import IntervalTrigger, create_task
+from interactions import listen, slash_command, SlashContext, AutocompleteContext, message_context_menu, user_context_menu, component_callback, ComponentContext, ModalContext, Task
 
 import secret_data as sd
 import global_variables as g
@@ -13,47 +12,50 @@ import my_utils as u
 
 g.init()
 
-#bot = interactions.Client(token = sd.dc_bod_token, presence=ClientPresence(activities=[PresenceActivity(name="Margonem", type=PresenceActivityType.GAME, created_at=0)],status=StatusType.ONLINE, afk=False))
-bot = interactions.Client(token = sd.dc_discord_bot_testy_token, presence=ClientPresence(activities=[PresenceActivity(name="Margonem", type=PresenceActivityType.GAME, created_at=0)],status=StatusType.ONLINE, afk=False))
-g.bot = bot
+my_token = sd.dc_discord_bot_testy_token
+#my_token = sd.dc_bod_token
 
-@bot.event
-async def on_start():
+#bot = interactions.Client(token = sd.dc_bod_token, presence=ClientPresence(activities=[PresenceActivity(name="Margonem", type=PresenceActivityType.GAME, created_at=0)],status=StatusType.ONLINE, afk=False))
+
+#bot = interactions.Client(token = sd.dc_discord_bot_testy_token, presence=interactions.ClientPresence(since=0, activities=[interactions.PresenceActivity(name="Margonem", type=interactions.PresenceActivityType.GAME, created_at=0)], status=interactions.StatusType.ONLINE, afk=False))
+bot = interactions.Client(activity=interactions.Activity(name="Margonem", type=interactions.ActivityType.GAME, created_at=time.time()))
+bot.send_command_tracebacks = False
+
+@listen()
+async def on_startup():
+    g.bot = bot
     print('Online')
-    try:
-        g.channel_quiz = await interactions.get(bot, interactions.Channel, object_id=1083376240783785985)
-    except:
-        g.channel_quiz = await interactions.get(bot, interactions.Channel, object_id=1085193552864235591)
     my_task.start()
     look_for_new_item.start()
 
 
-@bot.command(
+@slash_command(
     name="say_something",
     description="say something!",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy
     ],
     options = [
-        interactions.Option(
+        interactions.SlashCommandOption(
             type=interactions.OptionType.STRING,
             name="text",
             description="What you want to say",
             required=True,
         ),
     ],
+    
 )
-async def say_something(ctx: interactions.CommandContext, text: str):
+async def say_something(ctx: SlashContext, text: str):
     print(ctx.author.roles)
     if(1084883485736583248 in ctx.author.roles):
         print("Yess")
 
 '''
-@bot.command(
+@slash_command(
     name="count",
     description="Oblicza statystyki bić zadanego potwora",
     options = [
-        interactions.Option(
+        interactions.SlashCommandOption(
             type=interactions.OptionType.STRING,
             name="mob",
             description="Link do moba na lootlogu",
@@ -61,7 +63,7 @@ async def say_something(ctx: interactions.CommandContext, text: str):
         ),
     ],
 )
-async def count(ctx: interactions.CommandContext, mob: str):
+async def count(ctx: SlashContext, mob: str):
     global bicia, uni, hera, legi
     #urlOriginal = arg
     if str(mob).find("https://grooove.pl/")>=0:
@@ -80,11 +82,11 @@ async def count(ctx: interactions.CommandContext, mob: str):
         embed=interactions.Embed(title="Niepoprawny adres!", description = "Upewnij sie ze podany adres prowadzi do podstrony grooove.pl", color=200)
         await ctx.send(embeds=embed)
 
-@bot.command(
+@slash_command(
     name="wakacje2022",
     description="Oblicza statystyki bić potworów z eventu wakacje 2022",
     options = [
-        interactions.Option(
+        interactions.SlashCommandOption(
             type=interactions.OptionType.STRING,
             name="klan",
             description="Nazwa klanu",
@@ -92,7 +94,7 @@ async def count(ctx: interactions.CommandContext, mob: str):
         ),
     ],
 )
-async def wakacje2022(ctx: interactions.CommandContext, klan: str):
+async def wakacje2022(ctx: SlashContext, klan: str):
     embed=interactions.Embed(title="Statystyki:")
     link = await setLink(klan)
     if(link == "BRAK"):
@@ -107,11 +109,11 @@ async def wakacje2022(ctx: interactions.CommandContext, klan: str):
         await getMobData(embed, link, "Papa Legba", "210")
         await ctx.send(embeds=embed)
 
-@bot.command(
+@slash_command(
     name="halloween2022",
     description="Oblicza statystyki bić potworów z eventu halloween 2022",
     options = [
-        interactions.Option(
+        interactions.SlashCommandOption(
             type=interactions.OptionType.STRING,
             name="klan",
             description="Nazwa klanu",
@@ -119,7 +121,7 @@ async def wakacje2022(ctx: interactions.CommandContext, klan: str):
         ),
     ],
 )
-async def halloween2022(ctx: interactions.CommandContext, klan: str):
+async def halloween2022(ctx: SlashContext, klan: str):
     embed=interactions.Embed(title="Statystyki Halloween 2022:")
     link = await setLink(klan)
     if(link == "BRAK"):
@@ -136,11 +138,11 @@ async def halloween2022(ctx: interactions.CommandContext, klan: str):
         await getMobData(embed, link, "Olvidada Silva", "295")
         await ctx.send(embeds=embed)
 
-@bot.command(
+@slash_command(
     name="gwiazdka2022",
     description="Oblicza statystyki bić potworów z eventu gwiazdka 2022",
     options = [
-        interactions.Option(
+        interactions.SlashCommandOption(
             type=interactions.OptionType.STRING,
             name="klan",
             description="Nazwa klanu",
@@ -148,7 +150,7 @@ async def halloween2022(ctx: interactions.CommandContext, klan: str):
         ),
     ],
 )
-async def gwiazdka2022(ctx: interactions.CommandContext, klan: str):
+async def gwiazdka2022(ctx: SlashContext, klan: str):
     embed=interactions.Embed(title="Statystyki Gwiazdka 2022:")
     link = await setLink(klan)
     if(link == "BRAK"):
@@ -163,27 +165,27 @@ async def gwiazdka2022(ctx: interactions.CommandContext, klan: str):
         await ctx.send(embeds=embed)
 '''
 
-@bot.command(
+@slash_command(
     name="skarpetka",
     description="Informacje o Skarpecie",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy,
         sd.dc_bod
     ],
 )
-async def skarpetka(ctx: interactions.CommandContext):
-    await command_send(ctx, content = "Skarpeta, znany też jako Skarpeciasty Kox, pierwszy i najlepszy tester discordowych bocików, najlepszy gracz Tarhuny i całego Margonem, dżentelmen, filantrop, człowiek kultury, dobrodziej, wspomożyciel, koxem jest ogolnie. Mówię to ja, Neeyo podpisany, z własnej i nieprzymuszonej woli.", files=interactions.File("img/Skieta/terror_skiety.png"))
+async def skarpetka(ctx: SlashContext):
+    await ctx.send(content = "Skarpeta, znany też jako Skarpeciasty Kox, pierwszy i najlepszy tester discordowych bocików, najlepszy gracz Tarhuny i całego Margonem, dżentelmen, filantrop, człowiek kultury, dobrodziej, wspomożyciel, koxem jest ogolnie. Mówię to ja, Neeyo podpisany, z własnej i nieprzymuszonej woli.", files=interactions.File("img/Skieta/terror_skiety.png"))
 
 
-@bot.command(
+@slash_command(
     name="top",
     description="Oblicza ranking graczy z najwieksza iloscia RN",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy,
         sd.dc_bod
     ],
     options = [
-        interactions.Option(
+        interactions.SlashCommandOption(
             type=interactions.OptionType.INTEGER,
             name="liczba",
             description="Liczba osob do wyswietlenia",
@@ -191,7 +193,7 @@ async def skarpetka(ctx: interactions.CommandContext):
         ),
     ],
 )
-async def top(ctx: interactions.CommandContext, liczba: int):
+async def top(ctx: SlashContext, liczba: int):
     await ctx.send("Zbieram dane...")
     await u.resetWyniki()
     await u.get_data_darro()
@@ -205,15 +207,15 @@ async def top(ctx: interactions.CommandContext, liczba: int):
     await ctx.send(embeds=embed)
     await u.u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "top")
 
-@bot.command(
+@slash_command(
     name="find",
     description="Wyswietla ranking RN gracza o podanym ID konta",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy,
         sd.dc_bod
     ],
     options = [
-        interactions.Option(
+        interactions.SlashCommandOption(
             type=interactions.OptionType.STRING,
             name="liczba",
             description="ID konta",
@@ -221,7 +223,7 @@ async def top(ctx: interactions.CommandContext, liczba: int):
         ),
     ],
 )
-async def find(ctx: interactions.CommandContext, liczba: str):
+async def find(ctx: SlashContext, liczba: str):
     await ctx.send("Zbieram dane...")
     await u.resetWyniki()
     await u.get_data_darro()
@@ -234,11 +236,11 @@ async def find(ctx: interactions.CommandContext, liczba: str):
         await ctx.send(embeds=embed)
         await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "find")
 '''
-@bot.command(
+@slash_command(
     name="nieaktywnosc",
     description="Podaje  najdluzej nieaktywne osoby na danym swiecie",
     options = [
-        interactions.Option(
+        interactions.SlashCommandOption(
             type=interactions.OptionType.STRING,
             name="swiat",
             description="Swiat z którego zostaną pobrane dane",
@@ -246,7 +248,7 @@ async def find(ctx: interactions.CommandContext, liczba: str):
         ),
     ],
 )
-async def nieaktywnosc(ctx: interactions.CommandContext, swiat: str):
+async def nieaktywnosc(ctx: SlashContext, swiat: str):
     df_col = ({'Nickname':["temp"], 'Lvl':[1000], 'Last online':[5]})
     df = pd.DataFrame(df_col)
     df = df.drop(df.index[[0]])
@@ -255,7 +257,7 @@ async def nieaktywnosc(ctx: interactions.CommandContext, swiat: str):
 
     await ctx.send("Zbieram dane...")
     if(await check_data_in_db_absency_last(swiat, ctx)):
-        await get_data_absency(ctx, df, swiat, link)
+        await get_data_absency(ctx, bot, df, swiat, link)
         #await ctx.send(embeds=embed)
         #df = df.iloc[0:0]
         del df
@@ -268,40 +270,48 @@ async def nieaktywnosc(ctx: interactions.CommandContext, swiat: str):
     #await check_data_in_db_absency_last(swiat)
 '''
 
-@bot.command(
+@slash_command(
     name="nieaktywnosc",
     description="Podaje najdluzej nieaktywne osoby na danym swiecie, aktualizacja raz na 6 godzin",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy,
         sd.dc_bod
     ],
 )
-async def nieaktywnosc(ctx: interactions.CommandContext):
+async def nieaktywnosc(ctx: SlashContext):
     if(int(ctx.guild_id) == sd.dc_discord_bot_testy or int(ctx.guild_id) == sd.dc_bod):
-        button1 = Button(
-            style=ButtonStyle.PRIMARY,
-            custom_id="nieaktywnosc1",
-            label="Narwhals"
-        )
-        button2 = Button(
-            style=ButtonStyle.PRIMARY,
-            custom_id="nieaktywnosc2",
-            label="Stoners"
-        )
-        await ctx.send("Wybierz swiat", components=[button1, button2])
+        components = [
+            interactions.ActionRow(
+                interactions.Button(
+                    style=interactions.ButtonStyle.PRIMARY,
+                    custom_id="nieaktywnosc1",
+                    label="Narwhals"
+                ),
+                interactions.Button(
+                    style=interactions.ButtonStyle.PRIMARY,
+                    custom_id="nieaktywnosc2",
+                    label="Stoners"
+                )
+            )
+        ]
+        await ctx.send("Wybierz swiat", components=components)
     elif(ctx.guild_id == sd.dc_sm):
-        button2 = Button(
-            style=ButtonStyle.PRIMARY,
-            custom_id="nieaktywnosc2",
-            label="Stoners"
-        )
-        await ctx.send("Wybierz swiat", components=[button2])
+        components = [
+            interactions.ActionRow(
+                interactions.Button(
+                    style=interactions.ButtonStyle.PRIMARY,
+                    custom_id="nieaktywnosc2",
+                    label="Stoners"
+                )
+            )
+        ]
+        await ctx.send("Wybierz swiat", components=components)
     else:
         await ctx.send("Błąd, nie udało sie pobrac id serwera")
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "nieaktywnosc")
 
-@bot.component("nieaktywnosc1")
-async def button_response(ctx):
+@component_callback("nieaktywnosc1")
+async def button_response_1(ctx: ComponentContext):
     swiat = "Narwhals"
 
     df_col = ({'Nickname':["temp"], 'Lvl':[1000], 'Last online':[5]})
@@ -309,14 +319,14 @@ async def button_response(ctx):
     df = df.drop(df.index[[0]])
     link = "https://www.margonem.pl/ladder/players,"+ swiat +"?page="
     page = 1
-
+    print("Aa")
     await ctx.defer()
     if(await u.check_data_in_db_absency_last(swiat, ctx)):
         await u.get_data_absency(ctx, df, swiat, link, page)
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "nieaktywnosc - Narwhals")
 
-@bot.component("nieaktywnosc2")
-async def button_response(ctx):
+@component_callback("nieaktywnosc2")
+async def button_response_2(ctx: ComponentContext):
     swiat = "Stoners"
     
     df_col = ({'Nickname':["temp"], 'Lvl':[1000], 'Last online':[5]})
@@ -331,21 +341,21 @@ async def button_response(ctx):
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "nieaktywnosc - Stoners")
 
 '''
-@bot.command(
+@slash_command(
     name="embed",
     description="Test",
 )
-async def embed(ctx: interactions.CommandContext):
+async def embed(ctx: SlashContext):
     embed = interactions.Embed(
     title="your title",
     description="your description")
     await ctx.send(embeds = embed)
 
-@bot.command(
+@slash_command(
     name = "przycisk_test",
     description="Komenda testujaca przyciski"
 )
-async def przycisk_test(ctx: interactions.CommandContext):
+async def przycisk_test(ctx: SlashContext):
     button = Button(
         style=ButtonStyle.PRIMARY,
         custom_id="primary",
@@ -353,8 +363,8 @@ async def przycisk_test(ctx: interactions.CommandContext):
     )
     await ctx.send("Przykladowy przycisk", components=button)
 
-@bot.component("primary")
-async def button_response(ctx):
+@component_callback("primary")
+async def button_response(ctx: ComponentContext):
     button2 = Button(
         style=ButtonStyle.PRIMARY,
         custom_id="primary2",
@@ -367,25 +377,25 @@ async def button_response(ctx):
     )
     await ctx.send("Przykladowy przycisk", components=[button2, button3])
 
-@bot.component("primary2")
-async def button_response(ctx):
+@component_callback("primary2")
+async def button_response(ctx: ComponentContext):
     await ctx.send("Chwała Neeyom")
 
-@bot.component("primary3")
-async def button_response(ctx):
+@component_callback("primary3")
+async def button_response(ctx: ComponentContext):
     await ctx.send("Tak nie wolno, chwała Neeyom")
 '''
 
 
 
-@bot.command(
+@slash_command(
     name="stworz_baze",
     description="Tworzy baze danych, funkcja tymczasowa do testów",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy
     ],
 )
-async def stworz_baze(ctx: interactions.CommandContext):
+async def stworz_baze(ctx: SlashContext):
     await ctx.send("Tworzę baze danych...")
     try:
         await u.create_database()
@@ -394,19 +404,19 @@ async def stworz_baze(ctx: interactions.CommandContext):
         await ctx.send("Baza danych już istnieje")
 
 
-@bot.command(
+@slash_command(
     name="tanroth",
     description="Losuje drop z Tanrotha",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy,
         sd.dc_bod
     ],
 )
-async def tanroth(ctx: interactions.CommandContext):
+async def tanroth(ctx: SlashContext):
     print(int(ctx.author.user.id))
     response = await u.check_data_in_db_tanroth_last_update(int(ctx.author.user.id))
     if( response == 1):
-        await command_send(ctx, files=interactions.File("img/Tanroth/" + await u.random_tanroth_item(int(ctx.guild_id), int(ctx.author.user.id)) + ".png"))
+        await ctx.send(files=interactions.File("img/Tanroth/" + await u.random_tanroth_item(int(ctx.guild_id), int(ctx.author.user.id)) + ".png"))
     else:
         if(isinstance(response, float)):
             time_left = 600 - response
@@ -424,15 +434,15 @@ async def tanroth(ctx: interactions.CommandContext):
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "tanroth")
 
 
-@bot.command(
+@slash_command(
     name="online",
     description="Gracze online na wybranym świecie",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy,
         sd.dc_bod
     ],
     options = [
-        interactions.Option(
+        interactions.SlashCommandOption(
             type=interactions.OptionType.STRING,
             name="swiat",
             description="Swiat z którego zostaną pobrane dane",
@@ -440,112 +450,105 @@ async def tanroth(ctx: interactions.CommandContext):
         ),
     ],
 )
-async def online(ctx: interactions.CommandContext, swiat: str):
+async def online(ctx: SlashContext, swiat: str):
     result = await u.players_online(ctx, swiat)
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "online")
 
-@bot.command(
+@slash_command(
     name="online_przycisk",
     description="Gracze online na wybranym swiecie ale z przyciskiem",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy,
         sd.dc_bod
     ],
 )
-async def online_przycisk(ctx: interactions.CommandContext):
-    button1 = Button(
-        style=ButtonStyle.PRIMARY,
-        custom_id="online1",
-        label="Narwhals"
-    )
-    button2 = Button(
-        style=ButtonStyle.PRIMARY,
-        custom_id="online2",
-        label="Stoners"
-    )
-    button3 = Button(
-        style=ButtonStyle.PRIMARY,
-        custom_id="online3",
-        label="Tarhuna"
-    )
-    button4 = Button(
-        style=ButtonStyle.PRIMARY,
-        custom_id="online4",
-        label="Fobos"
-    )
-    button5 = Button(
-        style=ButtonStyle.PRIMARY,
-        custom_id="online5",
-        label="Unia"
-    )
-    await ctx.send("Wybierz swiat", components=[button1, button2, button3, button4, button5])
+async def online_przycisk(ctx: SlashContext):
+    components = [
+        interactions.ActionRow(
+            interactions.Button(
+                style=interactions.ButtonStyle.PRIMARY,
+                custom_id="online1",
+                label="Narwhals"
+            ),
+            interactions.Button(
+                style=interactions.ButtonStyle.PRIMARY,
+                custom_id="online2",
+                label="Stoners"
+            ),
+            interactions.Button(
+                style=interactions.ButtonStyle.PRIMARY,
+                custom_id="online3",
+                label="Tarhuna"
+            ),
+            interactions.Button(
+                style=interactions.ButtonStyle.PRIMARY,
+                custom_id="online4",
+                label="Fobos"
+            ),
+            interactions.Button(
+                style=interactions.ButtonStyle.PRIMARY,
+                custom_id="online5",
+                label="Unia"
+            )
+        )
+    ]
+    await ctx.send("Wybierz swiat", components=components)
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "online_przycisk")
 
-@bot.component("online1")
-async def button_response(ctx):
+@component_callback("online1")
+async def button_response_online1(ctx: ComponentContext):
     swiat = "Narwhals"
     await u.players_online(ctx, swiat)
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "online_przycisk - Narwhals")
 
-@bot.component("online2")
-async def button_response(ctx):
+@component_callback("online2")
+async def button_response_online2(ctx: ComponentContext):
     swiat = "Stoners"
     await u.players_online(ctx, swiat)
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "online_przycisk - Stoners")
 
-@bot.component("online3")
-async def button_response(ctx):
+@component_callback("online3")
+async def button_response_online3(ctx: ComponentContext):
     swiat = "Tarhuna"
     await u.players_online(ctx, swiat)
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "online_przycisk - Tarhuna")
 
-@bot.component("online4")
-async def button_response(ctx):
+@component_callback("online4")
+async def button_response(_online4ctx: ComponentContext):
     swiat = "Fobos"
     await u.players_online(ctx, swiat)
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "online_przycisk - Fobos")
 
-@bot.component("online5")
-async def button_response(ctx):
+@component_callback("online5")
+async def button_response_online5(ctx: ComponentContext):
     swiat = "Unia"
     await u.players_online(ctx, swiat)
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "online_przycisk - Unia")
 
-@bot.command(
+@slash_command(
     name="rejestracja",
     description="Rejestracja konta w Margonem do systemu powiadomień",
-    scope= [
-        sd.dc_discord_bot_testy,
-        sd.dc_bod
+    scopes= [
+        sd.dc_discord_bot_testy
     ],
 )
-async def rejestracja(ctx: interactions.CommandContext):
-    modal = Modal(
+async def rejestracja(ctx: SlashContext):
+    modal = interactions.Modal(
+        interactions.ShortText(label="ID konta", custom_id="register_text_input", placeholder="np. 1234567", min_length = 7, max_length = 7, required=True),
         custom_id = "register_modal",
         title = "Podaj id konta w Margonem",
-        components = [
-            TextInput(
-                style = TextStyleType.SHORT,
-                custom_id = "register_text_input",
-                label = "ID konta",
-                placeholder = "np. 1234567",
-                min_length = 7,
-                max_length = 7,
-                required = True
-            )
-        ]
     )
-    await ctx.popup(modal)
-    await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "rejestracja")
+    await ctx.send_modal(modal=modal)
 
-@bot.modal("register_modal")
-async def modal_response(ctx, response: str):
+    modal_ctx: ModalContext = await ctx.bot.wait_for_modal(modal)
+    #await modal_ctx.send(f"""You input {modal_ctx.responses["short_text"]} and {modal_ctx.responses["long_text"]}""")
+
     try:
-        int(response)
+        int(modal_ctx.responses["register_text_input"])
     except:
-        await ctx.send("Niepoprawne ID", ephemeral=True)
+        await modal_ctx.send("Niepoprawne ID", ephemeral=True)
         return
-    register_response = requests.get("https://www.margonem.pl/profile/view," + response)
+    register_response = requests.get("https://www.margonem.pl/profile/view," + modal_ctx.responses["register_text_input"])
     register_soup = BeautifulSoup(register_response.text, 'html.parser')
     nickname = register_soup.find('div', class_='brown-box profile-header mb-4')
     nickname = nickname.find('h2')
@@ -553,85 +556,121 @@ async def modal_response(ctx, response: str):
     nickname = nickname.string[17:-12]
     print(nickname)
     await u.update_characters_in_game_temp(ctx.author.user.id, nickname)
-    button1 = Button(
-        style=ButtonStyle.PRIMARY,
-        custom_id="register_button_1",
-        label="Tak, zapisz"
-    )
-    button2 = Button(
-        style=ButtonStyle.PRIMARY,
-        custom_id="register_button_2",
-        label="Nie"
-    )
-    await ctx.send("Czy twój nick to " + nickname + "?", components=[button1, button2], ephemeral=True)
-    g.store[ctx.author.user.id] = ctx
+    components = [
+        interactions.ActionRow(
+            interactions.Button(
+                style=interactions.ButtonStyle.PRIMARY,
+                custom_id="register_button_1",
+                label="Tak, zapisz"
+            ),
+            interactions.Button(
+                style=interactions.ButtonStyle.PRIMARY,
+                custom_id="register_button_2",
+                label="Nie"
+            )
+        )
+    ]
+    ctx_msg = await modal_ctx.send("Czy twój nick to " + nickname + "?", components=components, ephemeral=True)
+    g.store[ctx.author.user.id] = ctx_msg, ctx
 
-@bot.component("register_button_1")
-async def button_response1(ctx):
-    msg = g.store[ctx.author.user.id]
-    await msg.delete()
+    await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "rejestracja")
+
+
+@component_callback("register_button_1")
+async def button_response_register_button1(ctx: ComponentContext):
+    msg = g.store[ctx.author.user.id][0]
+    ctx_to_delete = g.store[ctx.author.user.id][1]
+    await msg.delete(context= ctx_to_delete)
     result = await u.check_data_in_characters_in_game(ctx.guild_id, ctx.author.user.id, await u.select_characters_in_game_temp(ctx.author.user.id))
     if(result == 1):
-        await ctx.send("Zrobione", ephemeral=True)
+        ctx_msg = await ctx.send("Zrobione", ephemeral=True)
     else:
-        button3 = Button(
-        style=ButtonStyle.PRIMARY,
-        custom_id="register_button_3",
-        label="Tak, zaktualizuj"
-        )
-        button4 = Button(
-            style=ButtonStyle.PRIMARY,
-            custom_id="register_button_4",
-            label="Nie, zostaw obecne"
-        )
-        await ctx.send("Do konta na Discordzie przypisano już konto w grze o nicku " + str(result)+ ". Zaktualizowac dane?", components=[button3, button4], ephemeral=True)
-    g.store[ctx.author.user.id] = ctx
-
-@bot.component("register_button_2")
-async def button_response2(ctx):
-    msg = g.store[ctx.author.user.id]
-    await msg.delete()
-    modal = Modal(
-        custom_id = "register_modal",
-        title = "Podaj id konta w Margonem",
         components = [
-            TextInput(
-                style = TextStyleType.SHORT,
-                custom_id = "register_text_input",
-                label = "ID konta",
-                placeholder = "np. 1234567",
-                min_length = 7,
-                max_length = 7,
-                required = True
+            interactions.ActionRow(
+                interactions.Button(
+                    style=interactions.ButtonStyle.PRIMARY,
+                    custom_id="register_button_3",
+                    label="Tak, zaktualizuj"
+                ),
+                interactions.Button(
+                    style=interactions.ButtonStyle.PRIMARY,
+                    custom_id="register_button_4",
+                    label="Nie, zostaw obecne"
+                )
             )
         ]
-    )
-    await ctx.popup(modal)
-    g.store[ctx.author.user.id] = ctx
+        ctx_msg = await ctx.send("Do konta na Discordzie przypisano już konto w grze o nicku " + str(result)+ ". Zaktualizowac dane?", components=components, ephemeral=True)
+    g.store[ctx.author.user.id] = ctx_msg, ctx
 
-@bot.component("register_button_3")
-async def button_response3(ctx):
-    msg = g.store[ctx.author.user.id]
-    await msg.delete()
+@component_callback("register_button_2")
+async def button_response_register_button2(ctx: ComponentContext):
+    msg = g.store[ctx.author.user.id][0]
+    ctx_to_delete = g.store[ctx.author.user.id][1]
+    await msg.delete(context= ctx_to_delete)
+    modal = interactions.Modal(
+        interactions.ShortText(label="ID konta", custom_id="register_text_input", placeholder="np. 1234567", min_length = 7, max_length = 7, required=True),
+        custom_id = "register_modal",
+        title = "Podaj id konta w Margonem",
+    )
+    await ctx.send_modal(modal=modal)
+
+    modal_ctx: ModalContext = await ctx.bot.wait_for_modal(modal)
+
+    try:
+        int(modal_ctx.responses["register_text_input"])
+    except:
+        await modal_ctx.send("Niepoprawne ID", ephemeral=True)
+        return
+    register_response = requests.get("https://www.margonem.pl/profile/view," + modal_ctx.responses["register_text_input"])
+    register_soup = BeautifulSoup(register_response.text, 'html.parser')
+    nickname = register_soup.find('div', class_='brown-box profile-header mb-4')
+    nickname = nickname.find('h2')
+    nickname = nickname.find('span')
+    nickname = nickname.string[17:-12]
+    print(nickname)
+    await u.update_characters_in_game_temp(ctx.author.user.id, nickname)
+    components = [
+        interactions.ActionRow(
+            interactions.Button(
+                style=interactions.ButtonStyle.PRIMARY,
+                custom_id="register_button_1",
+                label="Tak, zapisz"
+            ),
+            interactions.Button(
+                style=interactions.ButtonStyle.PRIMARY,
+                custom_id="register_button_2",
+                label="Nie"
+            )
+        )
+    ]
+    ctx_msg = await modal_ctx.send("Czy twój nick to " + nickname + "?", components=components, ephemeral=True)
+    g.store[ctx.author.user.id] = ctx_msg, ctx
+
+@component_callback("register_button_3")
+async def button_response_register_button3(ctx: ComponentContext):
+    msg = g.store[ctx.author.user.id][0]
+    ctx_to_delete = g.store[ctx.author.user.id][1]
+    await msg.delete(context= ctx_to_delete)
     await u.update_characters_in_game(ctx.guild_id, ctx.author.user.id, str(await u.select_characters_in_game_temp(ctx.author.user.id)))
     await ctx.send("Dane zaktualizowane", ephemeral=True)
 
-@bot.component("register_button_4")
-async def button_response3(ctx):
-    msg = g.store[ctx.author.user.id]
-    await msg.delete()
+@component_callback("register_button_4")
+async def button_response_register_button4(ctx: ComponentContext):
+    msg = g.store[ctx.author.user.id][0]
+    ctx_to_delete = g.store[ctx.author.user.id][1]
+    await msg.delete(context= ctx_to_delete)
     await ctx.send("Zmiany odrzucone", ephemeral=True)
 
 
-@bot.command(
+@slash_command(
     name="moje_dropy",
     description="Wyswietla licznik dropów z serwerowego Tanrotha",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy,
         sd.dc_bod
     ],
 )
-async def moje_dropy(ctx: interactions.CommandContext):
+async def moje_dropy(ctx: SlashContext):
     try: 
         result = await u.select_all_tanroth_drops(ctx.guild_id, ctx.author.user.id)
         embed=interactions.Embed(title="Licznik dropów z serwerowego Tanrotha")
@@ -644,14 +683,14 @@ async def moje_dropy(ctx: interactions.CommandContext):
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "moje_dropy")
 
 
-@bot.user_command(
+@user_context_menu(
     name="Dropy gracza",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy,
         sd.dc_bod
     ],
 )
-async def dropy_gracza(ctx: interactions.CommandContext):
+async def dropy_gracza(ctx: SlashContext):
     try: 
         result = await u.select_all_tanroth_drops(ctx.guild_id, ctx.target.user.id)
         embed=interactions.Embed(title="Licznik dropów z serwerowego Tanrotha")
@@ -664,28 +703,28 @@ async def dropy_gracza(ctx: interactions.CommandContext):
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "Dropy gracza")
 
 
-@create_task(IntervalTrigger(60))
+@Task.create(interactions.IntervalTrigger(minutes=1))
 async def my_task():
     await u.players_online_run_forever("Narwhals")
 
-@create_task(IntervalTrigger(60))
+@Task.create(interactions.IntervalTrigger(minutes=1))
 async def look_for_new_item():
     await u.listen_for_new_items("https://grooove.pl/blade_of_destiny_narwhals/", "bod")
 
-@create_task(IntervalTrigger(3))
+@Task.create(interactions.IntervalTrigger(seconds=3))
 async def zagadka_delay():
     zagadka_delay.stop()
 
 
-@bot.command(
+@slash_command(
     name="online_wykres",
     description="Wykres graczy online z dzisiaj",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy,
         sd.dc_bod
     ],
     options = [
-        interactions.Option(
+        interactions.SlashCommandOption(
             type=interactions.OptionType.STRING,
             name="nickname",
             description="Nazwa gracza",
@@ -693,61 +732,61 @@ async def zagadka_delay():
         ),
     ],
 )
-async def online_wykres(ctx: interactions.CommandContext, nickname: str):
+async def online_wykres(ctx: SlashContext, nickname: str):
     if(await u.select_players_online(nickname)):
-        await command_send(ctx, files=interactions.File("img/df_data/df_data.png"))
+        await ctx.send(files=interactions.File("img/df_data/df_data.png"))
     else:
         await ctx.send("Brak danych gracza " + nickname)
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "online_wykres")
 
 
-@bot.command(
+@slash_command(
     name="timery",
     description="Timery herosów i tytanów na lootlogu",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy,
         sd.dc_bod
     ],
 )
-async def timery(ctx: interactions.CommandContext):
+async def timery(ctx: SlashContext):
     embed=interactions.Embed(title="Timery herosów i tytanów")
     await u.get_timer_alt(embed)
     await ctx.send(embeds=embed)
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "timery")
 
 
-@bot.command(
+@slash_command(
     name="timery_alt",
     description="Timery herosów i tytanów na lootlogu",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy
     ],
 )
-async def timery_alt(ctx: interactions.CommandContext):
+async def timery_alt(ctx: SlashContext):
     embed=interactions.Embed(title="Timery herosów i tytanów")
     await u.get_timer_alt(embed)
     await ctx.send(embeds=embed)
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "timery_alt")
 
 
-@bot.command(
+@slash_command(
     name="dodaj_timer",
     description="Dodaje timer na lootlog",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy,
         sd.dc_bod
     ],
     options = [
-        interactions.Option(
+        interactions.SlashCommandOption(
             type=interactions.OptionType.STRING,
             name="mob",
             description="Nazwa potwora",
             required=True,
-            autocomplete=True,
+            autocomplete=True
         ),
     ],
 )
-async def dodaj_timer(ctx: interactions.CommandContext, mob: str):
+async def dodaj_timer(ctx: SlashContext, mob: str):
     if(await u.add_timer(ctx, mob) == 1):
         await ctx.send("Dodano timer potwora " + mob)
     elif(await u.add_timer(ctx, mob) == 2):
@@ -757,24 +796,24 @@ async def dodaj_timer(ctx: interactions.CommandContext, mob: str):
     #await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "timery")
 
 @dodaj_timer.autocomplete("mob")
-async def dodaj_timer_autocomplete(ctx: interactions.CommandContext, user_input: str = ""):
+async def autocomplete(ctx: AutocompleteContext):
     items = ["Domina Ecclesiae", "Mietek Żul", "Mroczny Patryk", "Karmazynowy Mściciel", "Złodziej", "Zły Przewodnik", "Piekielny Kościej", "Opętany Paladyn", 
              "Kochanka Nocy", "Ksiaze Kasim", "Baca bez łowiec", "Lichwiarz Grauhaz", "Obłąkany łowca orków", "Czarująca Atalia", "Święty Braciszek", "Viviana Nandin", 
              "Mulher Ma", "Demonis Pan Nicości", "Vapor Veneno", "Dęborożec", "Tepeyollotl", "Negthotep Czarny Kapłan", "Młody smok"]
-    choices = [
-        interactions.Choice(name=item, value=item) for item in items if user_input in item 
-    ] 
-    await ctx.populate(choices)
+    choices = []
+    for item in items:
+        choices.append({"name": item, "value": item})
+    await ctx.send(choices=choices)
 
 
-@bot.command(
+@slash_command(
     name="czlonkowie_klanow",
     description="Wypisuje w konsoli czlonkow kazdego z klanów na dany przedzial",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy
     ],
     options = [
-        interactions.Option(
+        interactions.SlashCommandOption(
             type=interactions.OptionType.STRING,
             name="klan",
             description="Nazwa klanu",
@@ -782,32 +821,31 @@ async def dodaj_timer_autocomplete(ctx: interactions.CommandContext, user_input:
         ),
     ],
 )
-async def czlonkowie_klanow(ctx: interactions.CommandContext, klan: str):
+async def czlonkowie_klanow(ctx: SlashContext, klan: str):
     await u.clan_members(ctx, klan)
 
 
-@bot.command(
+@slash_command(
     name="test_ping",
     description="Testowy ping",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy
     ],
 )
-async def test_ping(ctx: interactions.CommandContext):
-    channel = await interactions.get(bot, interactions.Channel, object_id=987410864946679861)
+async def test_ping(ctx: SlashContext):
+    channel = bot.get_channel(channel_id=987410864946679861)
     msg = "Możliwy Tanroth, " + str(1) + " rosów online"
     await channel.send(content=msg)
 
 
-@bot.command(
+@slash_command(
     name="zagadka_admin",
     description="Panel admina do tworzenia zagadek",
-    scope= [
-        sd.dc_discord_bot_testy,
-        sd.dc_bod
+    scopes= [
+        sd.dc_discord_bot_testy
     ],
 )
-async def zagadka_admin(ctx: interactions.CommandContext):
+async def zagadka_admin(ctx: SlashContext):
     #global g.has_quiz_started
     if(int(ctx.author.user.id) not in {349851438228439040, 372381114809188362, 546751756323913754}):
         await ctx.send("Brak uprawnień", ephemeral=True)
@@ -817,48 +855,31 @@ async def zagadka_admin(ctx: interactions.CommandContext):
         return
     try:
         msg = g.store_quiz_server[ctx.guild.id]
-        await msg.delete()
+        await msg.delete(ctx)
     except:
         print("Whatever")
     if(g.has_quiz_started == 1):
-        await u.quiz_UI_started(ctx)
+        ctx_msg = await u.quiz_UI_started(ctx)
     else:
-        await u.quiz_UI(ctx)
-    g.store_quiz_server[ctx.guild.id] = ctx
+        ctx_msg = await u.quiz_UI(ctx)
+    g.store_quiz_server[ctx.guild.id] = ctx_msg, ctx
 
-@bot.component("add_quiz")
-async def button_response(ctx):
-    #await ctx.send("Dodanie zagadki", ephemeral=True)
-
-    modal = Modal(
+@component_callback("add_quiz")
+async def button_response_add_quiz(ctx: ComponentContext):
+    modal = interactions.Modal(
+        interactions.ParagraphText(label="Zagadka", custom_id="add_quiz_modal_zagadka", placeholder="Tu wpisz zagadkę", required=True),
+        interactions.ShortText(label="Prawidłowa odpowiedź", custom_id="add_quiz_modal_odpowiedz", placeholder="Tu wpisz odpowiedź", required=True),
         custom_id = "add_quiz_modal",
         title = "Panel dodania nowej zagadki",
-        components = [
-            TextInput(
-                style = TextStyleType.PARAGRAPH,
-                custom_id = "add_quiz_modal_zagadka",
-                label = "Zagadka",
-                placeholder = "Tu wpisz zagadkę",
-                required = True
-            ),
-            TextInput(
-                style = TextStyleType.SHORT,
-                custom_id = "add_quiz_modal_odpowiedz",
-                label = "Prawidłowa odpowiedź",
-                placeholder = "Tu wpisz odpowiedź",
-                required = True
-            )
-        ]
     )
-    await ctx.popup(modal)
+    await ctx.send_modal(modal=modal)
 
-@bot.modal("add_quiz_modal")
-async def modal_response(ctx, zagadka: str, odpowiedz: str):
-    #global g.has_quiz_started
+    modal_ctx: ModalContext = await ctx.bot.wait_for_modal(modal)
+
     msg = g.store_quiz_server[ctx.guild.id]
-    await msg.delete()
-    #await ctx.send(zagadka, ephemeral=True)
-    #await ctx.send(odpowiedz, ephemeral=True)
+    await msg.delete(ctx)
+    zagadka = modal_ctx.responses["add_quiz_modal_zagadka"]
+    odpowiedz = modal_ctx.responses["add_quiz_modal_odpowiedz"]
     try:
         await u.add_data_in_db_quiz(int(ctx.guild_id), zagadka, odpowiedz)
         await ctx.send(str(ctx.author.user.username) + " pomyślnie dodał(a) zagadkę: " + zagadka)
@@ -866,72 +887,59 @@ async def modal_response(ctx, zagadka: str, odpowiedz: str):
         await ctx.send(str(ctx.author.user.username) + " nie udało sie dodać zagadki: " + zagadka)
 
     if(g.has_quiz_started == 1):
-        await u.quiz_UI_started(ctx)
+        ctx_msg = await u.quiz_UI_started(ctx)
     else:
-        await u.quiz_UI(ctx)
-    g.store_quiz_server[ctx.guild.id] = ctx
+        ctx_msg = await u.quiz_UI(ctx)
+    g.store_quiz_server[ctx.guild.id] = ctx_msg, ctx
 
 
-@bot.component("delete_one")
-async def button_response(ctx):
-    #global g.has_quiz_started
-    #respone_zagadki = await get_data_in_db_quiz(int(ctx.guild_id))
-    #for i in range(len(response)):
-    #    response_str = response_str + "Zagadka " + str(i + 1) + ": " + response[i][0] + " - " + response[i][1] + "\n"
+@component_callback("delete_one")
+async def button_response_delete_one(ctx: ComponentContext):
     msg = g.store_quiz_server[ctx.guild.id]
-    await msg.delete()
+    await msg.delete(ctx)
     respone_zagadki = await u.get_data_in_db_quiz(int(ctx.guild_id))
     if(len(respone_zagadki) != 0):
-        modal = Modal(
+        modal = interactions.Modal(
+            interactions.ShortText(label="Numer zagadki którą chcesz usunąć", custom_id="delete_one_modal_odpowiedz", placeholder="Tu wpisz numer", required=True),
             custom_id = "delete_zagadka_modal",
             title = "Panel usuwania wybranej zagadki",
-            components = [
-                TextInput(
-                    style = TextStyleType.SHORT,
-                    custom_id = "delete_one_modal_odpowiedz",
-                    label = "Numer zagadki którą chcesz usunąć",
-                    placeholder = "Tu wpisz numer",
-                    required = True
-                )
-            ]
         )
-        await ctx.popup(modal)
+        await ctx.send_modal(modal=modal)
+
+        modal_ctx: ModalContext = await ctx.bot.wait_for_modal(modal)
+        numer = modal_ctx.responses["delete_one_modal_odpowiedz"]
+
+        msg = g.store_quiz_server[ctx.guild.id]
+        await msg.delete(ctx)
+
+        respone_zagadki = await u.get_data_in_db_quiz(int(ctx.guild_id))
+        zagadka = respone_zagadki[int(numer)-1][0]
+        odpowiedz = respone_zagadki[int(numer)-1][1]
+        response = await u.delete_data_in_db_quiz(int(ctx.guild_id), zagadka, odpowiedz)
+        if(response == 1):
+            await ctx.send(str(ctx.author.user.username) + " Upomyślnie usunął(ęła) zagadkę: " + zagadka)
+        elif(response == 2):
+            await ctx.send(str(ctx.author.user.username) + " próbował(a) usunąć nieistniejącą zagadkę")
+        
+        if(g.has_quiz_started == 1):
+            ctx_msg = await u.quiz_UI_started(ctx)
+        else:
+            ctx_msg = await u.quiz_UI(ctx)
+        g.store_quiz_server[ctx.guild.id] = ctx_msg, ctx
     else:
         await ctx.send(str(ctx.author.user.username) + " próbował(a) usunąć nieistniejącą zagadkę")
     if(g.has_quiz_started == 1):
-        await u.quiz_UI_started(ctx)
+        ctx_msg = await u.quiz_UI_started(ctx)
     else:
-        await u.quiz_UI(ctx)
-    g.store_quiz_server[ctx.guild.id] = ctx
+        ctx_msg = await u.quiz_UI(ctx)
+    g.store_quiz_server[ctx.guild.id] = ctx_msg, ctx
 
 
-@bot.modal("delete_zagadka_modal")
-async def modal_response(ctx, numer: str):
+@component_callback("delete_all")
+async def button_response_delete_all(ctx: ComponentContext):
     #global g.has_quiz_started
     msg = g.store_quiz_server[ctx.guild.id]
-    await msg.delete()
-
-    respone_zagadki = await u.get_data_in_db_quiz(int(ctx.guild_id))
-    zagadka = respone_zagadki[int(numer)-1][0]
-    odpowiedz = respone_zagadki[int(numer)-1][1]
-    response = await u.delete_data_in_db_quiz(int(ctx.guild_id), zagadka, odpowiedz)
-    if(response == 1):
-         await ctx.send(str(ctx.author.user.username) + " Upomyślnie usunął(ęła) zagadkę: " + zagadka)
-    elif(response == 2):
-         await ctx.send(str(ctx.author.user.username) + " próbował(a) usunąć nieistniejącą zagadkę")
-    
-    if(g.has_quiz_started == 1):
-        await u.quiz_UI_started(ctx)
-    else:
-        await u.quiz_UI(ctx)
-    g.store_quiz_server[ctx.guild.id] = ctx
-
-
-@bot.component("delete_all")
-async def button_response(ctx):
-    #global g.has_quiz_started
-    msg = g.store_quiz_server[ctx.guild.id]
-    await msg.delete()
+    await msg.delete(ctx)
 
     response = await u.delete_all_data_in_db_quiz(int(ctx.guild_id))
     if(response == 1):
@@ -940,14 +948,14 @@ async def button_response(ctx):
          await ctx.send(str(ctx.author.user.username) + " próbował(a) usunąć nieistniejącą zagadkę")
     
     if(g.has_quiz_started == 1):
-        await u.quiz_UI_started(ctx)
+        ctx_msg = await u.quiz_UI_started(ctx)
     else:
-        await u.quiz_UI(ctx)
-    g.store_quiz_server[ctx.guild.id] = ctx
+        ctx_msg = await u.quiz_UI(ctx)
+    g.store_quiz_server[ctx.guild.id] = ctx_msg, ctx
 
 
-@bot.component("start_quiz")
-async def button_response(ctx):
+@component_callback("start_quiz")
+async def button_response_start_quiz(ctx: ComponentContext):
     #global g.has_quiz_started, quiz_cd, g.current_riddle, g.current_answer, g.quiz_number, g.quiz_task, riddles
     g.quiz_number = 0
     g.has_quiz_started = 1
@@ -958,47 +966,43 @@ async def button_response(ctx):
     response_riddles = await u.get_data_in_db_quiz(int(ctx.guild_id))
     await ctx.send(str(ctx.author.user.username) + " rozpoczął(ęła) quiz")
 
-    try:
-        channel_quiz_start = await interactions.get(bot, interactions.Channel, object_id=1064671672822677594)
-        await channel_quiz_start.send(content="Quiz rozpoczął się")
-    except:
-        channel_quiz_start = await interactions.get(bot, interactions.Channel, object_id=1085193552864235591)
-        await channel_quiz_start.send(content="Quiz rozpoczął się")
-    #g.quiz_task = asyncio.create_task(quiz_sleep(ctx, response_riddles)) #works
+    channel_quiz_start = g.bot.get_channel(channel_id=1064671672822677594)
+    if(channel_quiz_start is None):
+        channel_quiz_start = g.bot.get_channel(channel_id=1085193552864235591)
+    await channel_quiz_start.send(content="Quiz rozpoczął się")
+    #g.quiz_task = asyncio.create_task(quiz_sleep(ctx, bot, response_riddles)) #works
 
     if(g.has_quiz_started == 0):
         return
     if(g.has_quiz_started == 1):
         msg = g.store_quiz_server[ctx.guild.id]
-        await msg.delete()
-        await u.quiz_UI_started(ctx)
-        g.store_quiz_server[ctx.guild.id] = ctx
+        await msg.delete(ctx)
+        ctx_msg = await u.quiz_UI_started(ctx)
+        g.store_quiz_server[ctx.guild.id] = ctx_msg, ctx
 
     #zagadka_delay.start()
 
     #msg = g.store[ctx.author.user.id]
-    #await msg.delete()
+    #await msg.delete(ctx)
 
 
-@bot.component("stop_quiz")
-async def button_response(ctx):
+@component_callback("stop_quiz")
+async def button_response_stop_quiz(ctx: ComponentContext):
     #global g.has_quiz_started, g.quiz_task
     #msg = g.store[ctx.author.user.id]
-    #await msg.delete()
+    #await msg.delete(ctx)
 
     #g.quiz_task.cancel() #works
 
     g.has_quiz_started = 0
     msg = g.store_quiz_server[ctx.guild.id]
-    await msg.delete()
+    await msg.delete(ctx)
     await ctx.send("Zakończono quiz")
 
-    try:
-        channel_quiz_start = await interactions.get(bot, interactions.Channel, object_id=1064671672822677594)
-        await channel_quiz_start.send(content="Quiz zakończył się")
-    except:
-        channel_quiz_start = await interactions.get(bot, interactions.Channel, object_id=1085193552864235591)
-        await channel_quiz_start.send(content="Quiz zakończył się")
+    channel_quiz_start = g.bot.get_channel(channel_id=1064671672822677594)
+    if(channel_quiz_start is None):
+        channel_quiz_start = g.bot.get_channel(channel_id=1085193552864235591)
+    await channel_quiz_start.send(content="Quiz zakończył się")
 
     quiz_result = await u.get_data_in_db_quiz_results(int(ctx.guild_id))
     quiz_result_str = ""
@@ -1011,25 +1015,24 @@ async def button_response(ctx):
         await ctx.send(quiz_result_str)
 
     if(g.has_quiz_started == 1):
-        await u.quiz_UI_started(ctx)
+        ctx_msg = await u.quiz_UI_started(ctx)
     else:
-        await u.quiz_UI(ctx)
-    g.store_quiz_server[ctx.guild.id] = ctx
+        ctx_msg = await u.quiz_UI(ctx)
+    g.store_quiz_server[ctx.guild.id] = ctx_msg, ctx
 
     #msg = g.store[ctx.author.user.id]
-    #await msg.delete()
+    #await msg.delete(ctx)
 
 
 
-@bot.command(
+@slash_command(
     name="zagadka",
     description="Zagadki",
-    scope= [
-        sd.dc_discord_bot_testy,
-        sd.dc_bod
+    scopes= [
+        sd.dc_discord_bot_testy
     ],
 )
-async def zagadka(ctx: interactions.CommandContext):
+async def zagadka(ctx: SlashContext):
     #global g.has_quiz_started, g.current_answer, riddles, channel_quiz
     if(1084883485736583248 in ctx.author.roles or 1084925145195491410 in ctx.author.roles):
         if(g.has_quiz_started == 1):
@@ -1037,7 +1040,7 @@ async def zagadka(ctx: interactions.CommandContext):
             has_won = await check_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id), ctx.author.user.username, int(ctx.author.user.discriminator))
             #print(has_won)
             if(has_won == 0):
-                modal = Modal(
+                modal = interactions.Modal(
                     custom_id = "answer_quiz_modal",
                     title = "Formularz odpowiedzi na zagadkę",
                     components = [
@@ -1063,20 +1066,89 @@ async def zagadka(ctx: interactions.CommandContext):
             losts = int(user_data[7])
 
             if(wins + losts <= len(g.riddles)-1):
-                modal = Modal(
+                modal = interactions.Modal(
+                    interactions.ShortText(label=g.riddles[wins + losts][0], custom_id="answer_quiz_modal_odpowiedz", placeholder = "Miejsce na odpowiedź", required=True),
                     custom_id = "answer_quiz_modal",
                     title = "Formularz odpowiedzi na zagadkę",
-                    components = [
-                        TextInput(
-                            style = TextStyleType.SHORT,
-                            custom_id = "answer_quiz_modal_odpowiedz",
-                            label = g.riddles[wins + losts][0],
-                            placeholder = "Miejsce na odpowiedź",
-                            required = True
-                        ),
-                    ]
                 )
-                await ctx.popup(modal)
+                await ctx.send_modal(modal=modal)
+                modal_ctx: ModalContext = await ctx.bot.wait_for_modal(modal)
+                odp = modal_ctx.responses["answer_quiz_modal_odpowiedz"]
+
+                user_data = await u.get_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id))
+                user_data = user_data[0]
+                tried = int(user_data[4])
+                points = int(user_data[5])
+                wins = int(user_data[6])
+                losts = int(user_data[7])
+                try:
+                    odp_temp = odp.lower()
+                    odp_temp = unidecode(odp_temp)
+                except:
+                    odp_temp = odp.lower()
+                
+                try:
+                    answer = g.riddles[wins + losts][1].lower()
+                    answer = unidecode(answer)
+                    answer = answer.split("/")
+                except:
+                    answer = g.riddles[wins + losts][1].lower()
+                await g.channel_quiz.send(content=str(ctx.author.user.username) + " odpowiedział(a): " + odp)
+                tried = tried + 1
+                if(odp_temp in answer):
+                    tried = 0
+                    points = points + 1
+                    wins = wins + 1
+
+                    components = [
+                        interactions.ActionRow(
+                            interactions.Button(
+                                style=interactions.ButtonStyle.PRIMARY,
+                                custom_id="next_riddle",
+                                label="Następna zagadka"
+                            )
+                        )
+                    ]
+
+                    await ctx.send("Prawidłowa odpowiedź", components=components, ephemeral=True)
+                    await g.channel_quiz.send(content=str(ctx.author.user.username) + " udzielił(a) poprawnej odpowiedzi, + 1 punkt")
+                    #print(user_data)
+                    await u.update_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id), tried, points, wins, losts)
+                else:
+                    if(tried >= 3):
+                        tried = 0
+                        losts = losts + 1
+                        components = [
+                            interactions.ActionRow(
+                                interactions.Button(
+                                    style=interactions.ButtonStyle.PRIMARY,
+                                    custom_id="next_riddle",
+                                    label="Następna zagadka"
+                                )
+                            )
+                        ]
+                        await ctx.send("Nieprawidłowa odpowiedź, limit prób przekroczony", components=components, ephemeral=True)
+                        await u.update_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id), tried, points, wins, losts)
+                    else:
+                        components = [
+                            interactions.ActionRow(
+                                interactions.Button(
+                                    style=interactions.ButtonStyle.PRIMARY,
+                                    custom_id="restart_quiz",
+                                    label="Spróbuj ponownie"
+                                ),
+                                interactions.Button(
+                                    style=interactions.ButtonStyle.PRIMARY,
+                                    custom_id="next_riddle_abandon",
+                                    label="Następna zagadka"
+                                )
+                            )
+                        ]
+                        await ctx.send("Nieprawidłowa odpowiedź", components=components, ephemeral=True)
+                        await u.update_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id), tried, points, wins, losts)
+
+                g.store_quiz_user[ctx.author.user.id] = ctx
+
             else:
                 await ctx.send("Udzieliłeś(aś) odpowiedzi na wszystkie zagadki", ephemeral=True)
                 quiz_result = await u.get_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id))
@@ -1086,133 +1158,16 @@ async def zagadka(ctx: interactions.CommandContext):
 
         else:
             await ctx.send("Żaden quiz nie jest obecnie aktywny", ephemeral=True)
-        #g.store[ctx.author.user.id] = ctx
+        #g.store[ctx.author.user.id] = ctx_msg
     else:
         await ctx.send("Nie masz uprawnień do wzięcia udziału w zagadce", ephemeral=True)
 
-@bot.modal("answer_quiz_modal")
-async def modal_response(ctx, odp: str):
-    #global g.current_answer, channel_quiz, riddles
-    '''
-    try:
-        odp_temp = odp.lower()
-        odp_temp = unidecode(odp_temp)
-    except:
-        odp_temp = odp.lower()
-    user_data = await get_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id))
-    user_data = user_data[0]
-    await channel_quiz.send(content=str(ctx.author.user.username) + " odpowiedział(a) na obecną zagadkę: " + odp)
-    if(odp_temp in g.current_answer):
-        await ctx.send("Prawidłowa odpowiedź", ephemeral=True)
-        await channel_quiz.send(content=str(ctx.author.user.username) + " udzielił(a) poprawnej odpowiedzi, + 1 punkt")
-        #print(user_data)
-        await update_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id), int(user_data[4]) + 1, int(user_data[5]) + 1, int(user_data[6]) + 1, int(user_data[7]))
-    else:
-        button_restart = Button(
-            style=ButtonStyle.DANGER,
-            custom_id="restart_quiz",
-            label="Spróbuj ponownie"
-        )
-        await ctx.send("Niepoprawna odpowiedź", components=[button_restart], ephemeral=True)
-        await update_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id), int(user_data[4]) + 1, int(user_data[5]), int(user_data[6]), int(user_data[6]) + 1)
-
-        g.store_quiz_user[ctx.author.user.id] = ctx
-        #await ctx.send("Niepoprawna odpowiedź", ephemeral=True)
-    '''
-
-    user_data = await u.get_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id))
-    user_data = user_data[0]
-    tried = int(user_data[4])
-    points = int(user_data[5])
-    wins = int(user_data[6])
-    losts = int(user_data[7])
-    try:
-        odp_temp = odp.lower()
-        odp_temp = unidecode(odp_temp)
-    except:
-        odp_temp = odp.lower()
-    
-    try:
-        answer = g.riddles[wins + losts][1].lower()
-        answer = unidecode(answer)
-        answer = answer.split("/")
-    except:
-        answer = g.riddles[wins + losts][1].lower()
-    await g.channel_quiz.send(content=str(ctx.author.user.username) + " odpowiedział(a): " + odp)
-    tried = tried + 1
-    if(odp_temp in answer):
-        tried = 0
-        points = points + 1
-        wins = wins + 1
-
-        button_next_riddle = Button(
-            style=ButtonStyle.PRIMARY,
-            custom_id="next_riddle",
-            label="Następna zagadka"
-        )
-
-        await ctx.send("Prawidłowa odpowiedź", components=[button_next_riddle], ephemeral=True)
-        await g.channel_quiz.send(content=str(ctx.author.user.username) + " udzielił(a) poprawnej odpowiedzi, + 1 punkt")
-        #print(user_data)
-        await u.update_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id), tried, points, wins, losts)
-    else:
-        if(tried >= 3):
-            tried = 0
-            losts = losts + 1
-            button_next_riddle = Button(
-                style=ButtonStyle.PRIMARY,
-                custom_id="next_riddle",
-                label="Następna zagadka"
-            )
-            await ctx.send("Nieprawidłowa odpowiedź, limit prób przekroczony", components=[button_next_riddle], ephemeral=True)
-            await u.update_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id), tried, points, wins, losts)
-        else:
-            button_restart = Button(
-                style=ButtonStyle.PRIMARY,
-                custom_id="restart_quiz",
-                label="Spróbuj ponownie"
-            )
-            button_next_riddle_abandon = Button(
-                style=ButtonStyle.PRIMARY,
-                custom_id="next_riddle_abandon",
-                label="Następna zagadka"
-            )
-            await ctx.send("Nieprawidłowa odpowiedź", components=[button_restart, button_next_riddle_abandon], ephemeral=True)
-            await u.update_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id), tried, points, wins, losts)
-
-    g.store_quiz_user[ctx.author.user.id] = ctx
-        #await ctx.send("Niepoprawna odpowiedź", ephemeral=True)
-
-@bot.component("restart_quiz")
-async def button_response(ctx):
-    #global g.has_quiz_started, g.current_answer, channel_quiz
-
+@component_callback("restart_quiz")
+async def button_response_restart_quiz(ctx: ComponentContext):
     msg = g.store_quiz_user[ctx.author.user.id]
-    await msg.delete()
+    await msg.delete(ctx)
 
     if(g.has_quiz_started == 1):
-        '''
-        has_won = await check_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id), ctx.author.user.username, int(ctx.author.user.discriminator))
-        #print(has_won)
-        if(has_won == 0):
-            modal = Modal(
-                custom_id = "answer_quiz_modal",
-                title = "Formularz odpowiedzi na zagadkę",
-                components = [
-                    TextInput(
-                        style = TextStyleType.SHORT,
-                        custom_id = "answer_quiz_modal_odpowiedz",
-                        label = g.current_riddle,
-                        placeholder = "Miejsce na odpowiedź",
-                        required = True
-                    ),
-                ]
-            )
-            await ctx.popup(modal)
-        else:
-            await ctx.send("Odgadłeś już hasło, zaczekaj na nową zagadkę", ephemeral=True)
-        '''
-
         user_data = await u.get_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id))
         user_data = user_data[0]
         #tried = int(user_data[4])
@@ -1220,20 +1175,89 @@ async def button_response(ctx):
         losts = int(user_data[7])
 
         if(wins + losts <= len(g.riddles)-1):
-            modal = Modal(
+            modal = interactions.Modal(
+                interactions.ShortText(label=g.riddles[wins + losts][0], custom_id="answer_quiz_modal_odpowiedz", placeholder = "Miejsce na odpowiedź", required = True),
                 custom_id = "answer_quiz_modal",
                 title = "Formularz odpowiedzi na zagadkę",
-                components = [
-                    TextInput(
-                        style = TextStyleType.SHORT,
-                        custom_id = "answer_quiz_modal_odpowiedz",
-                        label = g.riddles[wins + losts][0],
-                        placeholder = "Miejsce na odpowiedź",
-                        required = True
-                    ),
-                ]
             )
-            await ctx.popup(modal)
+            await ctx.send_modal(modal=modal)
+            modal_ctx: ModalContext = await ctx.bot.wait_for_modal(modal)
+            odp = modal_ctx.responses["answer_quiz_modal_odpowiedz"]
+
+            user_data = await u.get_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id))
+            user_data = user_data[0]
+            tried = int(user_data[4])
+            points = int(user_data[5])
+            wins = int(user_data[6])
+            losts = int(user_data[7])
+            try:
+                odp_temp = odp.lower()
+                odp_temp = unidecode(odp_temp)
+            except:
+                odp_temp = odp.lower()
+                
+            try:
+                answer = g.riddles[wins + losts][1].lower()
+                answer = unidecode(answer)
+                answer = answer.split("/")
+            except:
+                answer = g.riddles[wins + losts][1].lower()
+            await g.channel_quiz.send(content=str(ctx.author.user.username) + " odpowiedział(a): " + odp)
+            tried = tried + 1
+            if(odp_temp in answer):
+                tried = 0
+                points = points + 1
+                wins = wins + 1
+
+                components = [
+                    interactions.ActionRow(
+                        interactions.Button(
+                            style=interactions.ButtonStyle.PRIMARY,
+                            custom_id="next_riddle",
+                            label="Następna zagadka"
+                        )
+                    )
+                ]
+
+                await ctx.send("Prawidłowa odpowiedź", components=components, ephemeral=True)
+                await g.channel_quiz.send(content=str(ctx.author.user.username) + " udzielił(a) poprawnej odpowiedzi, + 1 punkt")
+                #print(user_data)
+                await u.update_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id), tried, points, wins, losts)
+            else:
+                if(tried >= 3):
+                    tried = 0
+                    losts = losts + 1
+                    components = [
+                        interactions.ActionRow(
+                            interactions.Button(
+                                style=interactions.ButtonStyle.PRIMARY,
+                                custom_id="next_riddle",
+                                label="Następna zagadka"
+                            )
+                        )
+                    ]
+                    await ctx.send("Nieprawidłowa odpowiedź, limit prób przekroczony", components=components, ephemeral=True)
+                    await u.update_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id), tried, points, wins, losts)
+                else:
+                    components = [
+                        interactions.ActionRow(
+                            interactions.Button(
+                                style=interactions.ButtonStyle.PRIMARY,
+                                custom_id="restart_quiz",
+                                label="Spróbuj ponownie"
+                            ),
+                            interactions.Button(
+                                style=interactions.ButtonStyle.PRIMARY,
+                                custom_id="next_riddle_abandon",
+                                label="Następna zagadka"
+                            )
+                        )
+                    ]
+                    await ctx.send("Nieprawidłowa odpowiedź", components=components, ephemeral=True)
+                    await u.update_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id), tried, points, wins, losts)
+
+            g.store_quiz_user[ctx.author.user.id] = ctx
+
         else:
             await ctx.send("Udzieliłeś(aś) odpowiedzi na wszystkie zagadki", ephemeral=True)
             quiz_result = await u.get_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id))
@@ -1245,12 +1269,12 @@ async def button_response(ctx):
 
 
 
-@bot.component("next_riddle")
-async def button_response(ctx):
+@component_callback("next_riddle")
+async def button_response_next_riddle(ctx: ComponentContext):
     #global g.has_quiz_started, g.current_answer, channel_quiz
 
     msg = g.store_quiz_user[ctx.author.user.id]
-    await msg.delete()
+    await msg.delete(ctx)
 
     if(g.has_quiz_started == 1):
         user_data = await u.get_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id))
@@ -1260,20 +1284,88 @@ async def button_response(ctx):
         losts = int(user_data[7])
 
         if(wins + losts <= len(g.riddles)-1):
-            modal = Modal(
+            modal = interactions.Modal(
+                interactions.ShortText(label=g.riddles[wins + losts][0], custom_id="answer_quiz_modal_odpowiedz", placeholder = "Miejsce na odpowiedź", required = True),
                 custom_id = "answer_quiz_modal",
                 title = "Formularz odpowiedzi na zagadkę",
-                components = [
-                    TextInput(
-                        style = TextStyleType.SHORT,
-                        custom_id = "answer_quiz_modal_odpowiedz",
-                        label = g.riddles[wins + losts][0],
-                        placeholder = "Miejsce na odpowiedź",
-                        required = True
-                    ),
-                ]
             )
-            await ctx.popup(modal)
+            await ctx.send_modal(modal=modal)
+            modal_ctx: ModalContext = await ctx.bot.wait_for_modal(modal)
+            odp = modal_ctx.responses["answer_quiz_modal_odpowiedz"]
+
+            user_data = await u.get_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id))
+            user_data = user_data[0]
+            tried = int(user_data[4])
+            points = int(user_data[5])
+            wins = int(user_data[6])
+            losts = int(user_data[7])
+            try:
+                odp_temp = odp.lower()
+                odp_temp = unidecode(odp_temp)
+            except:
+                odp_temp = odp.lower()
+                
+            try:
+                answer = g.riddles[wins + losts][1].lower()
+                answer = unidecode(answer)
+                answer = answer.split("/")
+            except:
+                answer = g.riddles[wins + losts][1].lower()
+            await g.channel_quiz.send(content=str(ctx.author.user.username) + " odpowiedział(a): " + odp)
+            tried = tried + 1
+            if(odp_temp in answer):
+                tried = 0
+                points = points + 1
+                wins = wins + 1
+
+                components = [
+                    interactions.ActionRow(
+                        interactions.Button(
+                            style=interactions.ButtonStyle.PRIMARY,
+                            custom_id="next_riddle",
+                            label="Następna zagadka"
+                        )
+                    )
+                ]
+
+                await ctx.send("Prawidłowa odpowiedź", components=components, ephemeral=True)
+                await g.channel_quiz.send(content=str(ctx.author.user.username) + " udzielił(a) poprawnej odpowiedzi, + 1 punkt")
+                #print(user_data)
+                await u.update_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id), tried, points, wins, losts)
+            else:
+                if(tried >= 3):
+                    tried = 0
+                    losts = losts + 1
+                    components = [
+                        interactions.ActionRow(
+                            interactions.Button(
+                                style=interactions.ButtonStyle.PRIMARY,
+                                custom_id="next_riddle",
+                                label="Następna zagadka"
+                            )
+                        )
+                    ]
+                    await ctx.send("Nieprawidłowa odpowiedź, limit prób przekroczony", components=components, ephemeral=True)
+                    await u.update_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id), tried, points, wins, losts)
+                else:
+                    components = [
+                        interactions.ActionRow(
+                            interactions.Button(
+                                style=interactions.ButtonStyle.PRIMARY,
+                                custom_id="restart_quiz",
+                                label="Spróbuj ponownie"
+                            ),
+                            interactions.Button(
+                                style=interactions.ButtonStyle.PRIMARY,
+                                custom_id="next_riddle_abandon",
+                                label="Następna zagadka"
+                            )
+                        )
+                    ]
+                    await ctx.send("Nieprawidłowa odpowiedź", components=components, ephemeral=True)
+                    await u.update_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id), tried, points, wins, losts)
+
+            g.store_quiz_user[ctx.author.user.id] = ctx
         else:
             await ctx.send("Udzieliłeś(aś) odpowiedzi na wszystkie zagadki", ephemeral=True)
             quiz_result = await u.get_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id))
@@ -1285,12 +1377,12 @@ async def button_response(ctx):
 
 
 
-@bot.component("next_riddle_abandon")
-async def button_response(ctx):
+@component_callback("next_riddle_abandon")
+async def button_response_next_riddle_abandon(ctx: ComponentContext):
     #global g.has_quiz_started, g.current_answer, channel_quiz
 
     msg = g.store_quiz_user[ctx.author.user.id]
-    await msg.delete()
+    await msg.delete(ctx)
 
     if(g.has_quiz_started == 1):
         user_data = await u.get_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id))
@@ -1309,20 +1401,88 @@ async def button_response(ctx):
         losts = int(user_data[7])
 
         if(wins + losts <= len(g.riddles)-1):
-            modal = Modal(
+            modal = interactions.Modal(
+                interactions.ShortText(label=g.riddles[wins + losts][0], custom_id="answer_quiz_modal_odpowiedz", placeholder = "Miejsce na odpowiedź", required = True),
                 custom_id = "answer_quiz_modal",
                 title = "Formularz odpowiedzi na zagadkę",
-                components = [
-                    TextInput(
-                        style = TextStyleType.SHORT,
-                        custom_id = "answer_quiz_modal_odpowiedz",
-                        label = g.riddles[wins + losts][0],
-                        placeholder = "Miejsce na odpowiedź",
-                        required = True
-                    ),
-                ]
             )
-            await ctx.popup(modal)
+            await ctx.send_modal(modal=modal)
+            modal_ctx: ModalContext = await ctx.bot.wait_for_modal(modal)
+            odp = modal_ctx.responses["answer_quiz_modal_odpowiedz"]
+
+            user_data = await u.get_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id))
+            user_data = user_data[0]
+            tried = int(user_data[4])
+            points = int(user_data[5])
+            wins = int(user_data[6])
+            losts = int(user_data[7])
+            try:
+                odp_temp = odp.lower()
+                odp_temp = unidecode(odp_temp)
+            except:
+                odp_temp = odp.lower()
+                
+            try:
+                answer = g.riddles[wins + losts][1].lower()
+                answer = unidecode(answer)
+                answer = answer.split("/")
+            except:
+                answer = g.riddles[wins + losts][1].lower()
+            await g.channel_quiz.send(content=str(ctx.author.user.username) + " odpowiedział(a): " + odp)
+            tried = tried + 1
+            if(odp_temp in answer):
+                tried = 0
+                points = points + 1
+                wins = wins + 1
+
+                components = [
+                    interactions.ActionRow(
+                        interactions.Button(
+                            style=interactions.ButtonStyle.PRIMARY,
+                            custom_id="next_riddle",
+                            label="Następna zagadka"
+                        )
+                    )
+                ]
+
+                await ctx.send("Prawidłowa odpowiedź", components=components, ephemeral=True)
+                await g.channel_quiz.send(content=str(ctx.author.user.username) + " udzielił(a) poprawnej odpowiedzi, + 1 punkt")
+                #print(user_data)
+                await u.update_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id), tried, points, wins, losts)
+            else:
+                if(tried >= 3):
+                    tried = 0
+                    losts = losts + 1
+                    components = [
+                        interactions.ActionRow(
+                            interactions.Button(
+                                style=interactions.ButtonStyle.PRIMARY,
+                                custom_id="next_riddle",
+                                label="Następna zagadka"
+                            )
+                        )
+                    ]
+                    await ctx.send("Nieprawidłowa odpowiedź, limit prób przekroczony", components=components, ephemeral=True)
+                    await u.update_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id), tried, points, wins, losts)
+                else:
+                    components = [
+                        interactions.ActionRow(
+                            interactions.Button(
+                                style=interactions.ButtonStyle.PRIMARY,
+                                custom_id="restart_quiz",
+                                label="Spróbuj ponownie"
+                            ),
+                            interactions.Button(
+                                style=interactions.ButtonStyle.PRIMARY,
+                                custom_id="next_riddle_abandon",
+                                label="Następna zagadka"
+                            )
+                        )
+                    ]
+                    await ctx.send("Nieprawidłowa odpowiedź", components=components, ephemeral=True)
+                    await u.update_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id), tried, points, wins, losts)
+
+            g.store_quiz_user[ctx.author.user.id] = ctx
         else:
             await ctx.send("Udzieliłeś(aś) odpowiedzi na wszystkie zagadki", ephemeral=True)
             quiz_result = await u.get_data_in_db_quiz_results(int(ctx.guild_id), int(ctx.author.user.id))
@@ -1333,45 +1493,45 @@ async def button_response(ctx):
         await ctx.send("Żaden quiz nie jest obecnie aktywny", ephemeral=True)
 
 
-@bot.command(
+@slash_command(
     name="generuj_obrazek",
     description="Generuje obrazek z wynikami losowania",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy,
     ],
 )
-async def generuj_obrazek(ctx: interactions.CommandContext):
+async def generuj_obrazek(ctx: SlashContext):
     await u.generate_image()
 
 
-@bot.command(
+@slash_command(
     name="konkurs",
     description="Wyniki konkursu Łowcy herosów",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy,
         sd.dc_bod
     ],
 )
-async def konkurs(ctx: interactions.CommandContext):
+async def konkurs(ctx: SlashContext):
     embed=interactions.Embed(title="Wyniki konkursu Łowcy herosów")
     await u.get_google_sheets_data(ctx, embed)
     await ctx.send(embeds=embed)
 
 
-@bot.command(
+@slash_command(
     name="hti",
     description="HTML to image",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy
     ],
     options = [
-        interactions.Option(
+        interactions.SlashCommandOption(
             type=interactions.OptionType.STRING,
             name="link",
             description="Link do przedmiotu ze strony margohelp.pl",
             required=True,
         ),
-        interactions.Option(
+        interactions.SlashCommandOption(
             type=interactions.OptionType.INTEGER,
             name="poziom",
             description="Poziom na który ulepszyć przedmiot",
@@ -1379,18 +1539,18 @@ async def konkurs(ctx: interactions.CommandContext):
         ),
     ],
 )
-async def hti(ctx: interactions.CommandContext, link: str, poziom: int):
+async def hti(ctx: SlashContext, link: str, poziom: int):
     await u.generate_image_from_html(link, poziom)
 
 
-@bot.command(
+@slash_command(
     name="posty",
     description="Posty",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy,
     ],
     options = [
-        interactions.Option(
+        interactions.SlashCommandOption(
             type=interactions.OptionType.STRING,
             name="link",
             description="Link",
@@ -1398,18 +1558,18 @@ async def hti(ctx: interactions.CommandContext, link: str, poziom: int):
         ),
     ]
 )
-async def posty(ctx: interactions.CommandContext, link: str):
+async def posty(ctx: SlashContext, link: str):
     await u.follow_posts(link)
 
 
-@bot.command(
+@slash_command(
     name="nowe_itemy",
     description="Nowe itemy",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy,
     ],
     options = [
-        interactions.Option(
+        interactions.SlashCommandOption(
             type=interactions.OptionType.STRING,
             name="link",
             description="Link",
@@ -1417,45 +1577,44 @@ async def posty(ctx: interactions.CommandContext, link: str):
         ),
     ]
 )
-async def nowe_itemy(ctx: interactions.CommandContext, link: str):
+async def nowe_itemy(ctx: SlashContext, link: str):
     await u.listen_for_new_items(link, "bod")
 
 
-@bot.command(
+@slash_command(
     name="e2_lista",
     description="Lista e2",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy,
     ],
 )
-async def e2_lista(ctx: interactions.CommandContext):
+async def e2_lista(ctx: SlashContext):
     await u.e2_list()
 
 
-@bot.command(
+@slash_command(
     name="obrazek_legenda",
     description="Obrazek legenda",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy,
     ],
 )
-async def obrazek_legenda(ctx: interactions.CommandContext):
+async def obrazek_legenda(ctx: SlashContext):
     await u.generate_image_when_legendary("Neeyo", "Jakas legenda", "Jakis potwor", 5)
-    try:
-        channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1064671672822677594)
-    except:
-        channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
+    channel_last_item = g.bot.get_channel(channel_id=1064671672822677594)
+    if(channel_last_item is None):
+        channel_last_item = g.bot.get_channel(channel_id=1085193552864235591)
     await channel_last_item.send(files=interactions.File("img/legendary/" + "Neeyo" + ".png"))
 
 
-@bot.command(
+@slash_command(
     name="kary",
     description="Wyświetla liste ukaranych graczy na świecie",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy,
     ],
 )
-async def kary(ctx: interactions.CommandContext):
+async def kary(ctx: SlashContext):
     swiat = "Narwhals"
 
     df_col = ({'Id':["temp"]})
@@ -1470,27 +1629,28 @@ async def kary(ctx: interactions.CommandContext):
     try:
         await u.get_data_bans(ctx, df, swiat, link, page, embed)
         try:
-            channel = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
+            channel = bot.get_channel(channel_id=1085193552864235591)
             await channel.send(embeds = embed)
         except:
             pass
     except:
         try:
-            channel = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
+            channel = bot.get_channel(channel_id=1085193552864235591)
             await channel.send(content="Jakiś błąd, prawdopodobnie błąd serwera")
         except:
             pass
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "kary - Narwhals")
 
 
-@bot.command(
+@slash_command(
     name="dodaj_wiadomosc_przez_ll",
     description="Dodaje wiadomosc przez ll",
-    scope= [
+    scopes= [
         sd.dc_discord_bot_testy,
+        sd.dc_bod
     ],
     options = [
-        interactions.Option(
+        interactions.SlashCommandOption(
             type=interactions.OptionType.STRING,
             name="message",
             description="Wiadomość",
@@ -1499,7 +1659,7 @@ async def kary(ctx: interactions.CommandContext):
         ),
     ],
 )
-async def dodaj_wiadomosc_przez_ll(ctx: interactions.CommandContext, message: str):
+async def dodaj_wiadomosc_przez_ll(ctx: SlashContext, message: str):
     if(await u.send_message_via_ll(ctx, message) == 1):
         await ctx.send("Pomyślnie wysłano wiadomość: " + message)
     elif(await u.send_message_via_ll(ctx, message) == 2):
@@ -1508,4 +1668,5 @@ async def dodaj_wiadomosc_przez_ll(ctx: interactions.CommandContext, message: st
         await ctx.send("Wystąpił błąd")
 
 
-bot.start()
+
+bot.start(token = my_token)
