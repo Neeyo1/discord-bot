@@ -26,10 +26,7 @@ from asyncio import sleep
 from PIL import Image, ImageDraw, ImageFont
 #from discord.ext import commands
 import interactions
-from interactions import Button, ButtonStyle, SelectMenu, SelectOption, ClientPresence, StatusType, PresenceActivity, PresenceActivityType, CommandContext, ComponentContext, Modal, TextInput, TextStyleType
-from interactions.ext.paginator import Page, Paginator
-from interactions.ext.files import command_send
-from interactions.ext.tasks import IntervalTrigger, create_task
+from interactions.ext.paginators import Paginator, Page
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -364,18 +361,20 @@ async def absency_df(ctx, world, df, current_daytime):
     embed3.add_field(name="(3/4)", value=embed_value3, inline=False)
     embed4.add_field(name="(4/4)", value=embed_value4, inline=False)
 
-    online_pages = await Paginator(
+    embeds = [embed1, embed2, embed3, embed4]
+    #paginator = Paginator.create_from_embeds(g.bot, *embeds, 15)
+    my_title = "Lista 100 graczy z najdłuższą nieaktywnością na świecie " + world + ", stan na " + current_daytime[8:10] + "-" + current_daytime[5:7] + "-" + current_daytime[0:4] + " " + current_daytime[11:16]
+    paginator = Paginator(
         client = g.bot,
-        ctx=ctx,
         pages=[
-            Page(embeds = embed1, title = "(1/4)"),
-            Page(embeds = embed2, title = "(2/4)"),
-            Page(embeds = embed3, title = "(3/4)"),
-            Page(embeds = embed4, title = "(4/4)"),
+            Page(content=embed_value1, title = my_title).to_embed(),
+            Page(content=embed_value2, title = my_title).to_embed(),
+            Page(content=embed_value3, title = my_title).to_embed(),
+            Page(content=embed_value4, title = my_title).to_embed(),
         ],
-        timeout = 600,
-        remove_after_timeout = True,
-    ).run()
+        timeout_interval=600
+    )
+    await paginator.send(ctx)
 
 async def create_database():
     path = 'database.db'
@@ -1016,7 +1015,7 @@ async def players_online_run_forever(swiat):
         #print(ros_tanroth_count, ros_teza_count, ros_magua_count, ros_przyzy_count, ros_lowka_count, ros_zoons_count, ros_arcy_count, ros_renio_count, ros_krolik_count, ros_orla_count, west_tanroth_count, west_teza_count, west_magua_count, west_przyzy_count, west_lowka_count, west_zoons_count, west_arcy_count, west_renio_count, west_krolik_count)
         
         players_online_to_ping = 5
-        channel = await interactions.get(g.bot, interactions.Channel, object_id=1081942227867140217)
+        channel = g.bot.get_channel(channel_id=1081942227867140217)
 
         if(int(date_today.hour) >= 10):
             if(ros_tanroth_count >= 7):
@@ -1044,7 +1043,7 @@ async def players_online_run_forever(swiat):
         #if(ros_arcy_count >= players_online_to_ping):
         #    msg = "Możliwy Arcy, " + str(ros_arcy_count) + " rosów online"
         #    await channel.send(content=msg)
-        if(ros_renio_count >= players_online_to_ping):
+        if(ros_renio_count >= 4):
             msg = "Możliwy Renio, " + str(ros_renio_count) + " rosów online"
             await channel.send(content=msg)
         #if(ros_krolik_count >= players_online_to_ping):
@@ -1292,53 +1291,71 @@ async def clan_members(ctx, klan):
 #async def quiz_admin():
 
 async def quiz_UI(ctx):
-    button_start = Button(
-        style=ButtonStyle.SUCCESS,
-        custom_id="start_quiz",
-        label="Rozpocznij quiz"
-    )
-    button1 = Button(
-        style=ButtonStyle.PRIMARY,
-        custom_id="add_quiz",
-        label="Dodaj zagadkę"
-    )
-    button2 = Button(
-        style=ButtonStyle.DANGER,
-        custom_id="delete_one",
-        label="Usuń zagadkę"
-    )
-    button3 = Button(
-        style=ButtonStyle.DANGER,
-        custom_id="delete_all",
-        label="Usuń wszystkie zagadki"
-    )
+    components1 = [
+        interactions.ActionRow(
+            interactions.Button(
+                style=interactions.ButtonStyle.SUCCESS,
+                custom_id="start_quiz",
+                label="Rozpocznij quiz"
+            ),
+            interactions.Button(
+                style=interactions.ButtonStyle.PRIMARY,
+                custom_id="add_quiz",
+                label="Dodaj zagadkę"
+            ),
+            interactions.Button(
+                style=interactions.ButtonStyle.DANGER,
+                custom_id="delete_one",
+                label="Usuń zagadkę"
+            ),
+            interactions.Button(
+                style=interactions.ButtonStyle.DANGER,
+                custom_id="delete_all",
+                label="Usuń wszystkie zagadki"
+            )
+        )
+    ]
+    components2 = [
+        interactions.ActionRow(
+            interactions.Button(
+                style=interactions.ButtonStyle.PRIMARY,
+                custom_id="add_quiz",
+                label="Dodaj zagadkę"
+            )
+        )
+    ]
     response = await get_data_in_db_quiz(int(ctx.guild_id))
     response_str = ""
     #print(response)
     #print(response[0][0])
     #print(len(response))
     if(len(response) == 0):
-        await ctx.send("Obecnie nie ma ustawionej zagadki", components=[button1])
+        ctx_msg = await ctx.send("Obecnie nie ma ustawionej zagadki", components=components2)
     else:
         for i in range(len(response)):
             response_str = response_str + "Zagadka " + str(i + 1) + ": " + response[i][0] + " - " + response[i][1] + "\n"
         response_str = response_str[:-1]
-        await ctx.send(response_str, components=[button_start, button1, button2, button3])
+        ctx_msg = await ctx.send(response_str, components=components1)
+    return ctx_msg
 
 async def quiz_UI_started(ctx):
     #global g.current_riddle, g.current_answer
-    button1 = Button(
-        style=ButtonStyle.DANGER,
-        custom_id="stop_quiz",
-        label="Zatrzymaj quiz"
-    )
+    components = [
+        interactions.ActionRow(
+            interactions.Button(
+                style=interactions.ButtonStyle.DANGER,
+                custom_id="stop_quiz",
+                label="Zatrzymaj quiz"
+            )
+        )
+    ]
     response = await get_data_in_db_quiz(int(ctx.guild_id))
     response_str = ""
     #print(response)
     #print(response[0][0])
     #print(len(response))
     if(len(response) == 0):
-        await ctx.send("Obecnie nie ma ustawionej zagadki", components=[button1])
+        ctx_msg = await ctx.send("Obecnie nie ma ustawionej zagadki", components=components)
     else:
         for i in range(len(response)):
             if(response[i][0] == g.current_riddle):
@@ -1346,14 +1363,15 @@ async def quiz_UI_started(ctx):
             else:
                 response_str = response_str + "Zagadka " + str(i + 1) + ": " + response[i][0] + " - " + response[i][1] + "\n"
         response_str = response_str[:-1]
-        await ctx.send(response_str, components=[button1])
+        ctx_msg = await ctx.send(response_str, components=components)
+    return ctx_msg
 
 
 
 async def quiz_sleep(ctx, response_riddles):
     #global g.has_quiz_started, quiz_cd, g.current_riddle, g.current_answer, g.quiz_number, g.quiz_task
     #msg = g.store[ctx.author.user.id]
-    #await msg.delete()
+    #await msg.delete(ctx)
     #for i in range(len(respone_zagadki)):
     g.current_riddle = response_riddles[g.quiz_number][0]
     try:
@@ -1369,34 +1387,30 @@ async def quiz_sleep(ctx, response_riddles):
     #await ctx.send(g.current_riddle + " - " + g.current_answer, ephemeral=True)
     if(g.has_quiz_started == 1):
         msg = g.store_quiz_server[ctx.guild.id]
-        await msg.delete()
+        await msg.delete(ctx)
 
         await quiz_UI_started(ctx)
 
         g.store_quiz_server[ctx.guild.id] = ctx
 
     print('Start')
-    try:
-        channel_quiz_start = await interactions.get(g.bot, interactions.Channel, object_id=1064671672822677594)
-        await channel_quiz_start.send(content="Pojawiła się nowa zagadka, czas na odpowiedź: 1min")
-    except:
-        channel_quiz_start = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
-        await channel_quiz_start.send(content="Pojawiła się nowa zagadka, czas na odpowiedź: 1min")
+    channel_quiz_start = g.bot.get_channel(channel_id=1064671672822677594)
+    if(channel_quiz_start is None):
+        channel_quiz_start = g.bot.get_channel(channel_id=1085193552864235591)
+    await channel_quiz_start.send(content="Pojawiła się nowa zagadka, czas na odpowiedź: 1min")
 
     try:
         await asyncio.sleep(g.quiz_cd)
     except asyncio.CancelledError:
         print('Stop')
-        try:
-            channel_quiz_start = await interactions.get(g.bot, interactions.Channel, object_id=1064671672822677594)
-            await channel_quiz_start.send(content="Quiz został ręcznie zakończony w trakcie trwania")
-        except:
-            channel_quiz_start = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
-            await channel_quiz_start.send(content="Quiz został ręcznie zakończony w trakcie trwania")
+        channel_quiz_start = g.bot.get_channel(channel_id=1064671672822677594)
+        if(channel_quiz_start is None):
+            channel_quiz_start = g.bot.get_channel(channel_id=1085193552864235591)
+        await channel_quiz_start.send(content="Quiz został ręcznie zakończony w trakcie trwania")
 
         g.has_quiz_started = 0
         msg = g.store_quiz_server[ctx.guild.id]
-        await msg.delete()
+        await msg.delete(ctx)
         await ctx.send(str(ctx.author.user.username) + " zakończył(a) ręcznie quiz")
         if(g.has_quiz_started == 1):
             await quiz_UI_started(ctx)
@@ -1412,15 +1426,13 @@ async def quiz_sleep(ctx, response_riddles):
         else:
             g.has_quiz_started = 0
             msg = g.store_quiz_server[ctx.guild.id]
-            await msg.delete()
+            await msg.delete(ctx)
             await ctx.send("Zakończono quiz")
 
-            try:
-                channel_quiz_start = await interactions.get(g.bot, interactions.Channel, object_id=1064671672822677594)
-                await channel_quiz_start.send(content="Quiz zakończył się")
-            except:
-                channel_quiz_start = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
-                await channel_quiz_start.send(content="Quiz zakończył się")
+            channel_quiz_start = g.bot.get_channel(channel_id=1064671672822677594)
+            if(channel_quiz_start is None):
+                channel_quiz_start = g.bot.get_channel(channel_id=1085193552864235591)
+            await channel_quiz_start.send(content="Quiz zakończył się")
 
             quiz_result = await get_data_in_db_quiz_results(int(ctx.guild_id))
             #print(quiz_result)
@@ -2021,6 +2033,10 @@ async def follow_posts(link):
 
 
 async def listen_for_new_items(link, clan):
+    channel_last_item = g.bot.get_channel(channel_id=1073356894141436045)
+    if(channel_last_item is None):
+        channel_last_item = g.bot.get_channel(channel_id=1085193552864235591)
+
     legendary_items = []
     legendary_items_links = []
     first_item_id = 0
@@ -2077,13 +2093,12 @@ async def listen_for_new_items(link, clan):
                 if "rarity=" in single_data:
                     item_rarity = single_data[7:]
                     #print(item_rarity)
-                    if('heroic' in item_rarity):
+                    if('legendary' in item_rarity):
                         legendary_items.append(item_name)
                         legendary_items_links.append(str(item["src"]))
                         #print(legendary_items)
                     break
-        if(len(legendary_items) > 0):
-            
+        if(len(legendary_items) > 0): 
             mob_name = i.find('a', class_='hastip').string
             for e2_name in g.mob_name_e2:
                 if(unidecode(e2_name.lower()) in unidecode(mob_name.lower())):
@@ -2101,14 +2116,14 @@ async def listen_for_new_items(link, clan):
             if(len(players) == 1):
                 player_nickname = i.find('div', class_='player hastip')["data-tip"]
                 player_nickname = player_nickname[:player_nickname.find(" (")]
-                try:
-                    channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1064671672822677594)
-                except:
-                    channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
+                #try:
+                #    channel_last_item = g.bot.get_channel(channel_id=1064671672822677594)
+                #except:
+                #    channel_last_item = g.bot.get_channel(channel_id=1085193552864235591)
                 item_link = legendary_items_links[0]
                 character_link = "https://micc.garmory-cdn.cloud" + str(i.find('div', class_='player hastip')["data-bg"])
                 await generate_image_when_legendary(player_nickname, item_name, mob_name, 1, item_link, character_link)
-                await channel_last_item.send(files=interactions.File("img/legendary/" + unidecode(player_nickname) + ".png"))
+                await channel_last_item.send(files=interactions.File("img/legendary/" + unidecode(player_nickname) + ".png"), content= "Gz " + player_nickname + " " + str(interactions.PartialEmoji(name=":heart:")))
                 os.remove("img/legendary/" + unidecode(player_nickname) + ".png")
                 #await channel_last_item.send(content=player_nickname + " zdobył(a) " + item_name + " z potwora " + mob_name + " w grupie 1-osobowej")
                 print(player_nickname + " zdobył(a) " + item_name + " z potwora " + mob_name + " w grupie 1-osobowej")
@@ -2136,28 +2151,20 @@ async def listen_for_new_items(link, clan):
                     #print(item_catched)
                     #print(who_cathced)
                     if item_catched in legendary_items:
-                        try:
-                            channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1064671672822677594)
-                        except:
-                            channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
                         #print(str(legendary_items.index(item_catched)))
                         #print(str(legendary_items_links[legendary_items.index(item_catched)]))
                         item_link = legendary_items_links[legendary_items.index(item_catched)]
                         await generate_image_when_legendary(who_cathced, item_catched, mob_name, len(players), item_link, character_link)
-                        await channel_last_item.send(files=interactions.File("img/legendary/" + unidecode(who_cathced) + ".png"))
+                        await channel_last_item.send(files=interactions.File("img/legendary/" + unidecode(who_cathced) + ".png"), content= "Gz " + who_cathced + " " + str(interactions.PartialEmoji(name=":heart:")))
                         os.remove("img/legendary/" + unidecode(who_cathced) + ".png")
                         #await channel_last_item.send(content=who_cathced + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(players) + "-osobowej")
                         print(who_cathced + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(len(players)) + "-osobowej")
                         await asyncio.sleep(1)
                 if(len(soup2.find_all('p', class_='divide catcher')) == 0):
-                    try:
-                        channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1064671672822677594)
-                    except:
-                        channel_last_item = await interactions.get(g.bot, interactions.Channel, object_id=1085193552864235591)
                     for item_catched in legendary_items:
                         item_link = legendary_items_links[legendary_items.index(item_catched)]
                         await generate_image_when_legendary("Nieznany ktoś", item_catched, mob_name, len(players), item_link, 0)
-                        await channel_last_item.send(files=interactions.File("img/legendary/" + unidecode("Nieznany ktoś") + ".png"))
+                        await channel_last_item.send(files=interactions.File("img/legendary/" + unidecode("Nieznany ktoś") + ".png"), content= "Gz nieznajomy ktosiu " + str(interactions.PartialEmoji(name=":heart:")) + " (błąd ll, brak podziału na ll w trakcie generowania obrazka)")
                         os.remove("img/legendary/" + unidecode("Nieznany ktoś") + ".png")
                         print("Ktoś" + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(len(players)) + "-osobowej")
                         await asyncio.sleep(1)
@@ -2309,3 +2316,4 @@ async def send_message_via_ll(ctx, message):
         return 1
     except:
         return 3
+    
