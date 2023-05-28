@@ -514,7 +514,7 @@ async def button_response_online3(ctx: ComponentContext):
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "online_przycisk - Tarhuna")
 
 @component_callback("online4")
-async def button_response(_online4ctx: ComponentContext):
+async def button_response_online4(ctx: ComponentContext):
     swiat = "Fobos"
     await u.players_online(ctx, swiat)
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "online_przycisk - Fobos")
@@ -787,11 +787,12 @@ async def timery_alt(ctx: SlashContext):
     ],
 )
 async def dodaj_timer(ctx: SlashContext, mob: str):
-    if(await u.add_timer(ctx, mob) == 1):
+    response = await u.add_timer(ctx, mob)
+    if(response == 1):
         await ctx.send("Dodano timer potwora " + mob)
-    elif(await u.add_timer(ctx, mob) == 2):
+    elif(response == 2):
         await ctx.send("Brak uprawnień do użycia komendy, tymczasowo ograniczone")
-    elif(await u.add_timer(ctx, mob) == 3):
+    elif(response == 3):
         await ctx.send("Wystąpił błąd")
     #await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "timery")
 
@@ -1660,11 +1661,12 @@ async def kary(ctx: SlashContext):
     ],
 )
 async def dodaj_wiadomosc_przez_ll(ctx: SlashContext, message: str):
-    if(await u.send_message_via_ll(ctx, message) == 1):
+    response = await u.send_message_via_ll(ctx, message)
+    if(response == 1):
         await ctx.send("Pomyślnie wysłano wiadomość: " + message)
-    elif(await u.send_message_via_ll(ctx, message) == 2):
+    elif(response == 2):
         await ctx.send("Brak uprawnień do użycia komendy, tymczasowo ograniczone")
-    elif(await u.send_message_via_ll(ctx, message) == 3):
+    elif(response == 3):
         await ctx.send("Wystąpił błąd")
 
 

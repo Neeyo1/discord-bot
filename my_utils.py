@@ -2033,6 +2033,10 @@ async def follow_posts(link):
 
 
 async def listen_for_new_items(link, clan):
+    channel_last_item = g.bot.get_channel(channel_id=1073356894141436045)
+    if(channel_last_item is None):
+        channel_last_item = g.bot.get_channel(channel_id=1085193552864235591)
+
     legendary_items = []
     legendary_items_links = []
     first_item_id = 0
@@ -2094,8 +2098,7 @@ async def listen_for_new_items(link, clan):
                         legendary_items_links.append(str(item["src"]))
                         #print(legendary_items)
                     break
-        if(len(legendary_items) > 0):
-            
+        if(len(legendary_items) > 0): 
             mob_name = i.find('a', class_='hastip').string
             for e2_name in g.mob_name_e2:
                 if(unidecode(e2_name.lower()) in unidecode(mob_name.lower())):
@@ -2117,13 +2120,10 @@ async def listen_for_new_items(link, clan):
                 #    channel_last_item = g.bot.get_channel(channel_id=1064671672822677594)
                 #except:
                 #    channel_last_item = g.bot.get_channel(channel_id=1085193552864235591)
-                channel_last_item = g.bot.get_channel(channel_id=1064671672822677594)
-                if(channel_last_item is None):
-                    channel_last_item = g.bot.get_channel(channel_id=1085193552864235591)
                 item_link = legendary_items_links[0]
                 character_link = "https://micc.garmory-cdn.cloud" + str(i.find('div', class_='player hastip')["data-bg"])
                 await generate_image_when_legendary(player_nickname, item_name, mob_name, 1, item_link, character_link)
-                await channel_last_item.send(files=interactions.File("img/legendary/" + unidecode(player_nickname) + ".png"))
+                await channel_last_item.send(files=interactions.File("img/legendary/" + unidecode(player_nickname) + ".png"), content= "Gz " + player_nickname + " " + str(interactions.PartialEmoji(name=":heart:")))
                 os.remove("img/legendary/" + unidecode(player_nickname) + ".png")
                 #await channel_last_item.send(content=player_nickname + " zdobył(a) " + item_name + " z potwora " + mob_name + " w grupie 1-osobowej")
                 print(player_nickname + " zdobył(a) " + item_name + " z potwora " + mob_name + " w grupie 1-osobowej")
@@ -2151,27 +2151,20 @@ async def listen_for_new_items(link, clan):
                     #print(item_catched)
                     #print(who_cathced)
                     if item_catched in legendary_items:
-                        channel_last_item = g.bot.get_channel(channel_id=1064671672822677594)
-                        if(channel_last_item is None):
-                            channel_last_item = g.bot.get_channel(channel_id=1085193552864235591)
-                        print(channel_last_item)
                         #print(str(legendary_items.index(item_catched)))
                         #print(str(legendary_items_links[legendary_items.index(item_catched)]))
                         item_link = legendary_items_links[legendary_items.index(item_catched)]
                         await generate_image_when_legendary(who_cathced, item_catched, mob_name, len(players), item_link, character_link)
-                        await channel_last_item.send(files=interactions.File("img/legendary/" + unidecode(who_cathced) + ".png"))
+                        await channel_last_item.send(files=interactions.File("img/legendary/" + unidecode(who_cathced) + ".png"), content= "Gz " + who_cathced + " " + str(interactions.PartialEmoji(name=":heart:")))
                         os.remove("img/legendary/" + unidecode(who_cathced) + ".png")
                         #await channel_last_item.send(content=who_cathced + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(players) + "-osobowej")
                         print(who_cathced + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(len(players)) + "-osobowej")
                         await asyncio.sleep(1)
                 if(len(soup2.find_all('p', class_='divide catcher')) == 0):
-                    channel_last_item = g.bot.get_channel(channel_id=1064671672822677594)
-                    if(channel_last_item is None):
-                        channel_last_item = g.bot.get_channel(channel_id=1085193552864235591)
                     for item_catched in legendary_items:
                         item_link = legendary_items_links[legendary_items.index(item_catched)]
                         await generate_image_when_legendary("Nieznany ktoś", item_catched, mob_name, len(players), item_link, 0)
-                        await channel_last_item.send(files=interactions.File("img/legendary/" + unidecode("Nieznany ktoś") + ".png"))
+                        await channel_last_item.send(files=interactions.File("img/legendary/" + unidecode("Nieznany ktoś") + ".png"), content= "Gz nieznajomy ktosiu " + str(interactions.PartialEmoji(name=":heart:")) + " (błąd ll, brak podziału na ll w trakcie generowania obrazka)")
                         os.remove("img/legendary/" + unidecode("Nieznany ktoś") + ".png")
                         print("Ktoś" + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(len(players)) + "-osobowej")
                         await asyncio.sleep(1)
