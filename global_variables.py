@@ -107,6 +107,7 @@ def init():
         'Owadzia Matka',
         'Vari Kruger',
         'Furruk Kozug',
+        'Jotun',
         'Tollok Atamatu',
         'Tollok Utumutu',
         'Goplana',
