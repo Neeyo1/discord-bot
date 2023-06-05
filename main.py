@@ -709,7 +709,10 @@ async def my_task():
 
 @Task.create(interactions.IntervalTrigger(minutes=1))
 async def look_for_new_item():
-    await u.listen_for_new_items("https://grooove.pl/blade_of_destiny_narwhals/", "bod")
+    try:
+        await u.listen_for_new_items("https://grooove.pl/blade_of_destiny_narwhals/", "bod")
+    except:
+        pass
 
 @Task.create(interactions.IntervalTrigger(seconds=3))
 async def zagadka_delay():
@@ -800,10 +803,16 @@ async def dodaj_timer(ctx: SlashContext, mob: str):
 async def autocomplete(ctx: AutocompleteContext):
     items = ["Domina Ecclesiae", "Mietek Żul", "Mroczny Patryk", "Karmazynowy Mściciel", "Złodziej", "Zły Przewodnik", "Piekielny Kościej", "Opętany Paladyn", 
              "Kochanka Nocy", "Ksiaze Kasim", "Baca bez łowiec", "Lichwiarz Grauhaz", "Obłąkany łowca orków", "Czarująca Atalia", "Święty Braciszek", "Viviana Nandin", 
-             "Mulher Ma", "Demonis Pan Nicości", "Vapor Veneno", "Dęborożec", "Tepeyollotl", "Negthotep Czarny Kapłan", "Młody smok"]
+             "Mulher Ma", "Demonis Pan Nicości", "Vapor Veneno", "Dęborożec", "Tepeyollotl", "Negthotep Czarny Kapłan", "Młody smok", "Dziewicza Orlica", "Zabojczy Krolik",
+             "Renegat Baulus", "Piekielny Arcymag", "Versus Zoons", "Łowczyni Wspomnien", "Przyzywacz Demonow", "Maddok Magua", "Tezcatlipoca", "Barbatos Smoczy Straznik",
+             "Tanroth"
+             ]
     choices = []
     for item in items:
-        choices.append({"name": item, "value": item})
+        if(len(choices) >= 25):
+            break
+        if ctx.input_text.lower() in item.lower():
+            choices.append({"name": item, "value": item})
     await ctx.send(choices=choices)
 
 
