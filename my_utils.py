@@ -2303,7 +2303,10 @@ async def get_data_bans(ctx, df, world, link, page, embed):
             await asyncio.sleep(1)  
 
         print(df_bans)
-        embed_value = embed_value[:-1]
+        if(embed_value == ""):
+            embed_value = "Brak ukaranych graczy"
+        else:
+            embed_value = embed_value[:-1]
         embed.add_field(name="Świat " + world, value=embed_value, inline=False)
 
 

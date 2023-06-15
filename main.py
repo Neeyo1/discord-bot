@@ -753,8 +753,11 @@ async def online_wykres(ctx: SlashContext, nickname: str):
 )
 async def timery(ctx: SlashContext):
     embed=interactions.Embed(title="Timery herosów i tytanów")
-    await u.get_timer_alt(embed)
-    await ctx.send(embeds=embed)
+    try:
+        await u.get_timer_alt(embed)
+        await ctx.send(embeds=embed)
+    except:
+        await ctx.send(content="Bład, nie udało się połączyc z serwerem timerów")
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "timery")
 
 
@@ -1664,8 +1667,7 @@ async def kary(ctx: SlashContext):
             type=interactions.OptionType.STRING,
             name="message",
             description="Wiadomość",
-            required=True,
-            autocomplete=True,
+            required=True
         ),
     ],
 )
