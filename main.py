@@ -674,11 +674,11 @@ async def moje_dropy(ctx: SlashContext):
     try: 
         result = await u.select_all_tanroth_drops(ctx.guild_id, ctx.author.user.id)
         embed=interactions.Embed(title="Licznik dropów z serwerowego Tanrotha")
-        embed.add_field(name="Użytkownik: " + ctx.author.user.username + "#" + ctx.author.user.discriminator, value="Unikaty: " + str(result[0]) + "\n" + "Heroiki: " + str(result[1]) + "\n" + "Legendy: " + str(result[2]), inline=False)
+        embed.add_field(name="Użytkownik: " + ctx.author.user.username, value="Unikaty: " + str(result[0]) + "\n" + "Heroiki: " + str(result[1]) + "\n" + "Legendy: " + str(result[2]), inline=False)
         await ctx.send(embeds=embed)
     except:
         embed=interactions.Embed(title="Licznik dropów z serwerowego Tanrotha")
-        embed.add_field(name="Użytkownik: " + ctx.author.user.username + "#" + ctx.author.user.discriminator, value="Unikaty: " + str(0) + "\n" + "Heroiki: " + str(0) + "\n" + "Legendy: " + str(0), inline=False)
+        embed.add_field(name="Użytkownik: " + ctx.author.user.username, value="Unikaty: " + str(0) + "\n" + "Heroiki: " + str(0) + "\n" + "Legendy: " + str(0), inline=False)
         await ctx.send(embeds=embed)
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "moje_dropy")
 
@@ -694,11 +694,11 @@ async def dropy_gracza(ctx: SlashContext):
     try: 
         result = await u.select_all_tanroth_drops(ctx.guild_id, ctx.target.user.id)
         embed=interactions.Embed(title="Licznik dropów z serwerowego Tanrotha")
-        embed.add_field(name="Użytkownik: " + ctx.target.user.username + "#" + ctx.target.user.discriminator, value="Unikaty: " + str(result[0]) + "\n" + "Heroiki: " + str(result[1]) + "\n" + "Legendy: " + str(result[2]), inline=False)
+        embed.add_field(name="Użytkownik: " + ctx.target.user.username, value="Unikaty: " + str(result[0]) + "\n" + "Heroiki: " + str(result[1]) + "\n" + "Legendy: " + str(result[2]), inline=False)
         await ctx.send(embeds=embed)
     except:
         embed=interactions.Embed(title="Licznik dropów z serwerowego Tanrotha")
-        embed.add_field(name="Użytkownik: " + ctx.target.user.username + "#" + ctx.target.user.discriminator, value="Unikaty: " + str(0) + "\n" + "Heroiki: " + str(0) + "\n" + "Legendy: " + str(0), inline=False)
+        embed.add_field(name="Użytkownik: " + ctx.target.user.username, value="Unikaty: " + str(0) + "\n" + "Heroiki: " + str(0) + "\n" + "Legendy: " + str(0), inline=False)
         await ctx.send(embeds=embed)
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "Dropy gracza")
 
