@@ -27,6 +27,8 @@ async def on_startup():
     print('Online')
     my_task.start()
     look_for_new_item.start()
+    look_for_new_bans.start()
+    present_new_bans.start()
 
 
 @slash_command(
@@ -713,6 +715,40 @@ async def look_for_new_item():
         await u.listen_for_new_items("https://grooove.pl/blade_of_destiny_narwhals/", "bod")
     except:
         pass
+
+@Task.create(interactions.TimeTrigger(hour=9))
+async def look_for_new_bans():
+    try:
+        swiat = "Narwhals"
+        df_col = ({'Id':["temp"]})
+        df = pd.DataFrame(df_col)
+        df = df.drop(df.index[[0]])
+        link = "https://www.margonem.pl/ladder/players,"+ swiat +"?page="
+        page = 1
+        embed_value = await u.get_data_bans(df, swiat, link, page)
+        g.store_bans[sd.dc_bod] = embed_value
+    except:
+        g.store_bans[sd.dc_bod] = ""
+
+@Task.create(interactions.TimeTrigger(hour=10))
+async def present_new_bans():
+    embed_value = g.store_bans[sd.dc_bod]
+    if(embed_value == ""):
+        return
+    embed=interactions.Embed(title="Lista ukaranych graczy")
+    swiat = "Narwhals"
+    try:
+        embed.add_field(name="Świat " + swiat, value=embed_value, inline=False)
+        channel = bot.get_channel(channel_id=1118856852332085329)
+        try:
+            await channel.send(embeds = embed)
+        except:
+            pass
+    except:
+        try:
+            await channel.send(content="Jakiś błąd, prawdopodobnie błąd serwera")
+        except:
+            pass
 
 @Task.create(interactions.IntervalTrigger(seconds=3))
 async def zagadka_delay():
@@ -1640,7 +1676,8 @@ async def kary(ctx: SlashContext):
 
     embed=interactions.Embed(title="Lista ukaranych graczy")
     try:
-        await u.get_data_bans(ctx, df, swiat, link, page, embed)
+        embed_value = await u.get_data_bans(df, swiat, link, page)
+        embed.add_field(name="Świat " + swiat, value=embed_value, inline=False)
         try:
             channel = bot.get_channel(channel_id=1085193552864235591)
             await channel.send(embeds = embed)
