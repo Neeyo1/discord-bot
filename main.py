@@ -716,7 +716,7 @@ async def look_for_new_item():
     except:
         pass
 
-@Task.create(interactions.TimeTrigger(hour=9))
+@Task.create(interactions.TimeTrigger(hour=9, utc=False))
 async def look_for_new_bans():
     try:
         swiat = "Narwhals"
@@ -730,7 +730,7 @@ async def look_for_new_bans():
     except:
         g.store_bans[sd.dc_bod] = ""
 
-@Task.create(interactions.TimeTrigger(hour=10))
+@Task.create(interactions.TimeTrigger(hour=10, utc=False))
 async def present_new_bans():
     embed_value = g.store_bans[sd.dc_bod]
     if(embed_value == ""):

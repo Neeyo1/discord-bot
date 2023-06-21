@@ -2278,7 +2278,7 @@ async def get_data_bans(df, world, link, page):
                 df = df.append({'Id':profile_link}, ignore_index=True)
             #df.loc[len(df)] = list
         await asyncio.sleep(0.5)
-        await get_data_bans(df, world, link, page+1)
+        return await get_data_bans(df, world, link, page+1)
     else:
         print(df)
         embed_value = ""
