@@ -2256,7 +2256,7 @@ async def generate_image_when_legendary(nickname, item, enemy, group, item_link,
     image.save('img/legendary/' + unidecode(nickname) + '.png', "PNG")
 
 
-async def get_data_bans(ctx, df, world, link, page, embed):
+async def get_data_bans(df, world, link, page):
     async with aiohttp.ClientSession() as session:
         async with session.get(link + str(page)) as response:
             soup = BeautifulSoup(await response.text(), 'html.parser')
@@ -2278,7 +2278,7 @@ async def get_data_bans(ctx, df, world, link, page, embed):
                 df = df.append({'Id':profile_link}, ignore_index=True)
             #df.loc[len(df)] = list
         await asyncio.sleep(0.5)
-        await get_data_bans(ctx, df, world, link, page+1, embed)
+        return await get_data_bans(df, world, link, page+1)
     else:
         print(df)
         embed_value = ""
@@ -2303,8 +2303,12 @@ async def get_data_bans(ctx, df, world, link, page, embed):
             await asyncio.sleep(1)  
 
         print(df_bans)
-        embed_value = embed_value[:-1]
-        embed.add_field(name="Świat " + world, value=embed_value, inline=False)
+        if(embed_value == ""):
+            embed_value = "Brak ukaranych graczy"
+        else:
+            embed_value = embed_value[:-1]
+        #embed.add_field(name="Świat " + world, value=embed_value, inline=False)
+        return embed_value
 
 
 async def send_message_via_ll(ctx, message):

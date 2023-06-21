@@ -27,6 +27,8 @@ async def on_startup():
     print('Online')
     my_task.start()
     look_for_new_item.start()
+    look_for_new_bans.start()
+    present_new_bans.start()
 
 
 @slash_command(
@@ -674,11 +676,11 @@ async def moje_dropy(ctx: SlashContext):
     try: 
         result = await u.select_all_tanroth_drops(ctx.guild_id, ctx.author.user.id)
         embed=interactions.Embed(title="Licznik dropów z serwerowego Tanrotha")
-        embed.add_field(name="Użytkownik: " + ctx.author.user.username + "#" + ctx.author.user.discriminator, value="Unikaty: " + str(result[0]) + "\n" + "Heroiki: " + str(result[1]) + "\n" + "Legendy: " + str(result[2]), inline=False)
+        embed.add_field(name="Użytkownik: " + ctx.author.user.username, value="Unikaty: " + str(result[0]) + "\n" + "Heroiki: " + str(result[1]) + "\n" + "Legendy: " + str(result[2]), inline=False)
         await ctx.send(embeds=embed)
     except:
         embed=interactions.Embed(title="Licznik dropów z serwerowego Tanrotha")
-        embed.add_field(name="Użytkownik: " + ctx.author.user.username + "#" + ctx.author.user.discriminator, value="Unikaty: " + str(0) + "\n" + "Heroiki: " + str(0) + "\n" + "Legendy: " + str(0), inline=False)
+        embed.add_field(name="Użytkownik: " + ctx.author.user.username, value="Unikaty: " + str(0) + "\n" + "Heroiki: " + str(0) + "\n" + "Legendy: " + str(0), inline=False)
         await ctx.send(embeds=embed)
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "moje_dropy")
 
@@ -694,11 +696,11 @@ async def dropy_gracza(ctx: SlashContext):
     try: 
         result = await u.select_all_tanroth_drops(ctx.guild_id, ctx.target.user.id)
         embed=interactions.Embed(title="Licznik dropów z serwerowego Tanrotha")
-        embed.add_field(name="Użytkownik: " + ctx.target.user.username + "#" + ctx.target.user.discriminator, value="Unikaty: " + str(result[0]) + "\n" + "Heroiki: " + str(result[1]) + "\n" + "Legendy: " + str(result[2]), inline=False)
+        embed.add_field(name="Użytkownik: " + ctx.target.user.username, value="Unikaty: " + str(result[0]) + "\n" + "Heroiki: " + str(result[1]) + "\n" + "Legendy: " + str(result[2]), inline=False)
         await ctx.send(embeds=embed)
     except:
         embed=interactions.Embed(title="Licznik dropów z serwerowego Tanrotha")
-        embed.add_field(name="Użytkownik: " + ctx.target.user.username + "#" + ctx.target.user.discriminator, value="Unikaty: " + str(0) + "\n" + "Heroiki: " + str(0) + "\n" + "Legendy: " + str(0), inline=False)
+        embed.add_field(name="Użytkownik: " + ctx.target.user.username, value="Unikaty: " + str(0) + "\n" + "Heroiki: " + str(0) + "\n" + "Legendy: " + str(0), inline=False)
         await ctx.send(embeds=embed)
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "Dropy gracza")
 
@@ -709,7 +711,44 @@ async def my_task():
 
 @Task.create(interactions.IntervalTrigger(minutes=1))
 async def look_for_new_item():
-    await u.listen_for_new_items("https://grooove.pl/blade_of_destiny_narwhals/", "bod")
+    try:
+        await u.listen_for_new_items("https://grooove.pl/blade_of_destiny_narwhals/", "bod")
+    except:
+        pass
+
+@Task.create(interactions.TimeTrigger(hour=9, utc=False))
+async def look_for_new_bans():
+    try:
+        swiat = "Narwhals"
+        df_col = ({'Id':["temp"]})
+        df = pd.DataFrame(df_col)
+        df = df.drop(df.index[[0]])
+        link = "https://www.margonem.pl/ladder/players,"+ swiat +"?page="
+        page = 1
+        embed_value = await u.get_data_bans(df, swiat, link, page)
+        g.store_bans[sd.dc_bod] = embed_value
+    except:
+        g.store_bans[sd.dc_bod] = ""
+
+@Task.create(interactions.TimeTrigger(hour=10, utc=False))
+async def present_new_bans():
+    embed_value = g.store_bans[sd.dc_bod]
+    if(embed_value == ""):
+        return
+    embed=interactions.Embed(title="Lista ukaranych graczy")
+    swiat = "Narwhals"
+    try:
+        embed.add_field(name="Świat " + swiat, value=embed_value, inline=False)
+        channel = bot.get_channel(channel_id=1118856852332085329)
+        try:
+            await channel.send(embeds = embed)
+        except:
+            pass
+    except:
+        try:
+            await channel.send(content="Jakiś błąd, prawdopodobnie błąd serwera")
+        except:
+            pass
 
 @Task.create(interactions.IntervalTrigger(seconds=3))
 async def zagadka_delay():
@@ -750,8 +789,11 @@ async def online_wykres(ctx: SlashContext, nickname: str):
 )
 async def timery(ctx: SlashContext):
     embed=interactions.Embed(title="Timery herosów i tytanów")
-    await u.get_timer_alt(embed)
-    await ctx.send(embeds=embed)
+    try:
+        await u.get_timer_alt(embed)
+        await ctx.send(embeds=embed)
+    except:
+        await ctx.send(content="Bład, nie udało się połączyc z serwerem timerów")
     await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "timery")
 
 
@@ -800,10 +842,16 @@ async def dodaj_timer(ctx: SlashContext, mob: str):
 async def autocomplete(ctx: AutocompleteContext):
     items = ["Domina Ecclesiae", "Mietek Żul", "Mroczny Patryk", "Karmazynowy Mściciel", "Złodziej", "Zły Przewodnik", "Piekielny Kościej", "Opętany Paladyn", 
              "Kochanka Nocy", "Ksiaze Kasim", "Baca bez łowiec", "Lichwiarz Grauhaz", "Obłąkany łowca orków", "Czarująca Atalia", "Święty Braciszek", "Viviana Nandin", 
-             "Mulher Ma", "Demonis Pan Nicości", "Vapor Veneno", "Dęborożec", "Tepeyollotl", "Negthotep Czarny Kapłan", "Młody smok"]
+             "Mulher Ma", "Demonis Pan Nicości", "Vapor Veneno", "Dęborożec", "Tepeyollotl", "Negthotep Czarny Kapłan", "Młody smok", "Dziewicza Orlica", "Zabojczy Krolik",
+             "Renegat Baulus", "Piekielny Arcymag", "Versus Zoons", "Łowczyni Wspomnien", "Przyzywacz Demonow", "Maddok Magua", "Tezcatlipoca", "Barbatos Smoczy Straznik",
+             "Tanroth"
+             ]
     choices = []
     for item in items:
-        choices.append({"name": item, "value": item})
+        if(len(choices) >= 25):
+            break
+        if ctx.input_text.lower() in item.lower():
+            choices.append({"name": item, "value": item})
     await ctx.send(choices=choices)
 
 
@@ -1628,7 +1676,8 @@ async def kary(ctx: SlashContext):
 
     embed=interactions.Embed(title="Lista ukaranych graczy")
     try:
-        await u.get_data_bans(ctx, df, swiat, link, page, embed)
+        embed_value = await u.get_data_bans(df, swiat, link, page)
+        embed.add_field(name="Świat " + swiat, value=embed_value, inline=False)
         try:
             channel = bot.get_channel(channel_id=1085193552864235591)
             await channel.send(embeds = embed)
@@ -1655,8 +1704,7 @@ async def kary(ctx: SlashContext):
             type=interactions.OptionType.STRING,
             name="message",
             description="Wiadomość",
-            required=True,
-            autocomplete=True,
+            required=True
         ),
     ],
 )
