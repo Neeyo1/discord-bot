@@ -1,6 +1,6 @@
 import pandas as pd
 def init():
-    global bicia, uni, hera, legi, rok, TanrothLegi, TanrothHera, TanrothUni, wynikiNick, wynikiId, wynikiRN, wynikiProfil, wynikiRank, page, position, store, store_quiz_user, store_quiz_server, store_bans, has_quiz_started, quiz_cd, current_riddle, current_answer, quiz_task, quiz_number, channel_quiz, riddles, mob_lvl_heros, mob_lvl_tytan, mob_name_tytan, mob_name_e2, df_players_online_run_forever, ros_tanroth, ros_teza, ros_magua, ros_przyzy, ros_lowka, ros_zoons, ros_arcy, ros_renio, ros_krolik, ros_orla, west_tanroth, west_teza, west_magua, west_przyzy, west_lowka, west_zoons, west_arcy, west_renio, west_krolik, west_orla, bot
+    global bicia, uni, hera, legi, rok, TanrothLegi, TanrothHera, TanrothUni, wynikiNick, wynikiId, wynikiRN, wynikiProfil, wynikiRank, page, position, store, store_quiz_user, store_quiz_server, store_bans, has_quiz_started, quiz_cd, current_riddle, current_answer, quiz_task, quiz_number, channel_quiz, riddles, mob_lvl_heros, mob_lvl_tytan, mob_name_tytan, mob_name_e2, df_players_online_run_forever, clan_members_ros, clan_members_west, bot
 
     #lb
     bicia = 0
@@ -192,27 +192,8 @@ def init():
     df_players_online_run_forever = df_players_online_run_forever.drop(df_players_online_run_forever.index[[0]])
 
     #players list
-    ros_tanroth = ["Ayenn", "Soboll", "Ratheos", "Lascove", "Lubuski Talent", "Mistrz Emifx", "Knoperrs Kokosowy", "Kariston", "Lizeer", "Kompleks Steryda", "Romaren", "Trop kox", "Pinguinek", "Esechjon", "Efate", "FreeFall", "dr reh inż Fri", "Kakarrot", "Flights", "Flookie", "Rawage", "Nocny Zonk", "Łoś Bibiś", "Shirukibi", "Thahku", "Tamirath", "Antharax", "Teximus", "Cattney", "Roswell", "Moafio", "Popsuted Trop", "Lokfuhrer", "Mleczna Milka", "Yamatto", "Fallen Wolf", "Mokotowiak", "Rebam", "Delattre", "Puk Puk To Ja", "Po Prostu Sammy", "The Hrynio", "Javek", "Adean", "Soból", "Santhos"]
-    ros_teza = ["Elisha", "Lubisz Bigosik", "Katucham", "Nikiss", "Kapitan Chak", "Emifx", "Be Li Bi", "Karistonka", "Wąż boa", "Pinguin", "Esechion", "Efavtu", "Bapple Jack", "Sethaviel", "Bimkie Guy", "Vexez", "Kolorowy Ponczek", "Kolorowa Delicja", "Moławio", "Unluckyy Boyy", "Seetu", "Ikohn", "Kinnerad", "Hrynionafide", "Dymcio", "Yerpen", "Sobólowaty", "Sant"]
-    ros_magua = ["Laileen", "Ćpałeś", "Emisiek", "Ellectro", "Eysu", "Baksior", "Mejdż Riwejdż", "Ścichapęk", "Rachel Platten", "Inoeki", "Anayessa", "Smakosz Kiwi", "Słoneczny Zarządca", "Go Ahead", "Hrynio Love", "Kochion", "Teturgoth", "Dos Santos", "Zuy Dawid"]
-    ros_przyzy = ["Ninde", "hahaha beka z cb lol", "Katudałn", "Quarsin", "Flaruch", "Valar Morghulis", "Ukered", "ma ktos paje", "Esechionka", "Jędrek Konfident", "Latts Razzi", "Ushuriel", "Evelienn", "Manos Arriba", "Hiddens", "Catte Latte", "Toxic Muchomorek", "Kiui Majipan", "Chryzantem Złocisty", "Kung Fu Adi", "Rynuś", "Javcio", "Szoból", "Howard"]
-    ros_lowka = ["Virgax", "Szczebiotka", "Nimaster", "Chromosom z Fobosa", "Karistonkeł", "Yazaey", "Noob", "Jesko", "Ojciec Platynov", "Takeru", "Lethaviel", "Zonkuś", "Garram Bad", "Riwaldox", "Alicja Delicja", "Hot Bombel", "Meshy", "Ikoon", "Shaarmus", "Eriten", "Attash", "Reece James", "Fochmistrz", "Ale Mad", "Sebbav", "Nikushimi"]
-    ros_zoons = ["Virgax", "Szczebiotka", "Chromosom z Fobosa", "Yazaey", "Takeru", "Payne", "Lethaviel", "Zonkuś", "Riwaldox", "Cattcia", "Alicja Delicja", "Hot Bombel", "Meshy", "Ikoon", "Fochmistrz", "Ale Mad", "Sebbav", "Zły Daimyo"]
-    ros_arcy = ["Wrzucam Do Pieca", "Czarek Eklerek", "Dokąd nocą tupta jeż", "Eysunaf", "La Liberta", "czwarty skład nigdy", "Cobratate", "Lokadr", "dawid uwu mag", "Kazel", "Mighty Wolf", "Mag Emiś", "Esencion", "trzeci skład w nocy", "Young Moko", "dawać pierwszy skład"]
-    ros_renio = ["Sobollxtorpeda", "Avonex", "Dymciowa", "Pierwsza Klasa", "Catt", "Krayt", "Ese", "Sosnowiczanin", "Noiessa", "Rosweluś", "Latrivan", "Takermin", "Pingeł", "Hezuuś", "Elektronicky Mordulec", "Dredge", "Daksanius", "Arnielsem", "Olivitess", "Norman Parke", "Toverk Furrim", "Etaine", "Helmut Byk", "Pe Pe Ga", "Cindy Chan", "Moawio", "Insel"]
-    ros_krolik = ["Casmot", "Rozpacz", "Katudar", "Cold Bombel", "Sobólek", "B o o b a", "Patoshi", "Thrawn", "Emisiowaty", "Szkoda", "Lord Oberyn", "Bździągwa", "Rudy Z Wrocławia", "Bodawio", "Zua Flarusia", "Vexteron", "Vadosu", "Lucypher", "Smakołysz Muszity", "Karistołek", "Lil Moko", "Fiubździu", "One six nine", "Wolf Joqer", "Sir Flookie"]
-    ros_orla = ["Katudar", "Vadosu", "Lucypher", "Smakołysz Muszity", "Karistołek", "Lil Moko", "Fiubździu", "One six nine", "Wolf Joqer", "Sir Flookie"]
-
-    west_tanroth = ["Młody Charlie", "Shiranoy", "Hozukimaru", "Opunaa", "Yetiuszek", "Brad Bellick", "Teriash", "Vexuss", "Piłem aż Wypiłem", "Treno", "Mr Valex", "Głośnik", "Ałuś"]
-    west_teza = ["Akri Partenopajos", "Agilla", "Valeksik", "Presir"]
-    west_magua = ["Massey", "Vexuso", "Fluxe"]
-    west_przyzy = ["Thorin X", "Wolyo", "Jermaen", "Mały Yeti", "Xenaes", "Reswesin", "Valex", "Vexusik", "Riserp", "Flyleaf", "Mecenas Diabła"]
-    west_lowka = ["Baltazarek", "Xiądz Robak", "Faraya", "Little Opun", "Majsterek Valexa", "Karramba", "Treo", "Demixo", "Michael Scofield", "Ivar Ragnarsson", "Vimarth"]
-    west_zoons = ["Baltazarek", "Xiądz Robak", "Faraya", "Little Opun", "Majsterek Valexa", "Karramba", "Treo", "Demixo", "Michael Scofield", "Ivar Ragnarsson", "Vimarth"]
-    west_arcy = ["Ciemnogród z Rzucowa", "kox woj ever", "Opun", "Mc Donald", "Don Ciasteczko", "Zuy Teri"]
-    west_renio = ["Tańczący Charlie", "Jacques de Molay", "Katharin", "Doribi", "Orriz", "Don Self", "Owocowy Eklerek", "Suxev", "Max Bombel", "Sprośny Jelonek", "Fasen"]
-    west_krolik = ["Tharik Lokfor", "Słodki Valex", "Shellma", "Przesłodzony Demi", "Silrass", "Tarantóla"]
-    west_orla = []
+    clan_members_ros = None
+    clan_members_west = None
 
     #dc bot
     bot = None

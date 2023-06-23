@@ -972,43 +972,43 @@ async def players_online_run_forever(swiat):
             else:
                 g.df_players_online_run_forever = g.df_players_online_run_forever.append({'Nickname':nickname, 'Minutes_online':int(1), 'Account_id':int(account_id), 'Char_id':int(char_id)}, ignore_index=True)
             if(True):
-                if(nickname in g.ros_tanroth):
+                if(nickname in g.clan_members_ros["tanroth"]):
                     ros_tanroth_count = ros_tanroth_count+1
-                if(nickname in g.ros_teza):
+                if(nickname in g.clan_members_ros["teza"]):
                     ros_teza_count = ros_teza_count+1
-                if(nickname in g.ros_magua):
+                if(nickname in g.clan_members_ros["magua"]):
                     ros_magua_count = ros_magua_count+1
-                if(nickname in g.ros_przyzy):
+                if(nickname in g.clan_members_ros["przyzy"]):
                     ros_przyzy_count = ros_przyzy_count+1
-                #if(nickname in g.ros_lowka):
+                #if(nickname in g.clan_members_ros["lowka"]):
                 #    ros_lowka_count = ros_lowka_count+1
-                if(nickname in g.ros_zoons):
+                if(nickname in g.clan_members_ros["zoons"]):
                     ros_zoons_count = ros_zoons_count+1
-                #if(nickname in g.ros_arcy):
+                #if(nickname in g.clan_members_ros["arcy"]):
                 #    ros_arcy_count = ros_arcy_count+1
-                if(nickname in g.ros_renio):
+                if(nickname in g.clan_members_ros["renio"]):
                     ros_renio_count = ros_renio_count+1
-                #if(nickname in g.ros_krolik):
+                #if(nickname in g.clan_members_ros["krolik"]):
                 #    ros_krolik_count = ros_krolik_count+1
-                #if(nickname in g.ros_orla):
+                #if(nickname in g.clan_members_ros["orla"]):
                 #    ros_orla_count = ros_orla_count+1
-                if(nickname in g.west_tanroth):
+                if(nickname in g.clan_members_west["tanroth"]):
                     west_tanroth_count = west_tanroth_count+1
-                if(nickname in g.west_teza):
+                if(nickname in g.clan_members_west["teza"]):
                     west_teza_count = west_teza_count+1
-                if(nickname in g.west_magua):
+                if(nickname in g.clan_members_west["magua"]):
                     west_magua_count = west_magua_count+1
-                if(nickname in g.west_przyzy):
+                if(nickname in g.clan_members_west["przyzy"]):
                     west_przyzy_count = west_przyzy_count+1
-                #if(nickname in g.west_lowka):
+                #if(nickname in g.clan_members_west["lowka"]):
                 #    west_lowka_count = west_lowka_count+1
-                if(nickname in g.west_zoons):
+                if(nickname in g.clan_members_west["zoons"]):
                     west_zoons_count = west_zoons_count+1
-                #if(nickname in g.west_arcy):
+                #if(nickname in g.clan_members_west["arcy"]):
                 #    west_arcy_count = west_arcy_count+1
-                if(nickname in g.west_renio):
+                if(nickname in g.clan_members_west["renio"]):
                     west_renio_count = west_renio_count+1
-                #if(nickname in g.west_krolik):
+                #if(nickname in g.clan_members_west["lowka"]):
                 #    west_krolik_count = west_krolik_count+1
         
         #print(g.df_players_online_run_forever)
@@ -1285,6 +1285,91 @@ async def clan_members(ctx, klan):
         print("Orla:\n" + orla + "\n")
 
             #print(nickname, lvl, len(nickname), len(str(lvl)))
+
+
+async def get_clan_members(clan_members, klan_url):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(klan_url) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
+    table = soup.find('table', class_='table--separators w-100')
+    table = table.find('tbody')
+
+    try:
+        length = len(table.find_all('tr'))
+    except:
+        length = 0
+    if(length>1):
+        for i in table.find_all('tr'):
+            data = i.find_all("td")
+            nickname = data[1].a.string[10:-8]
+            lvl = int(data[2].string[9:-7])
+            if(lvl >= 285):
+                clan_members['tanroth'].append(nickname)
+            if(lvl >= 245 and lvl <= 271):
+                clan_members['teza'].append(nickname)
+            if(lvl >= 218 and lvl <= 244):
+                clan_members['magua'].append(nickname)
+            if(lvl >= 191 and lvl <= 217):
+                clan_members['przyzy'].append(nickname)
+            if(lvl >= 164 and lvl <= 190):
+                clan_members['lowka'].append(nickname)
+            if(lvl >= 145 and lvl <= 167):
+                clan_members['zoons'].append(nickname)
+            if(lvl >= 118 and lvl <= 144):
+                clan_members['arcy'].append(nickname)
+            if(lvl >= 88 and lvl <= 114):
+                clan_members['renio'].append(nickname)
+            if(lvl >= 57 and lvl <= 83):
+                clan_members['krolik'].append(nickname)
+            if(lvl >= 38 and lvl <= 64):
+                clan_members['orla'].append(nickname)
+    
+    return clan_members
+
+            #print(nickname, lvl, len(nickname), len(str(lvl)))
+
+
+async def update_clan_members():
+    #ros
+    clan_members_ros = {
+        "tanroth": [],
+        "teza": [],
+        "magua": [],
+        "przyzy": [],
+        "lowka": [],
+        "zoons": [],
+        "arcy": [],
+        "renio": [],
+        "krolik": [],
+        "orla": []
+    }
+    clan_members_ros = await get_clan_members(clan_members_ros, "https://www.margonem.pl/guilds/view,Narwhals,1057")
+    await asyncio.sleep(1)
+    clan_members_ros = await get_clan_members(clan_members_ros, "https://www.margonem.pl/guilds/view,Narwhals,1909")
+    g.clan_members_ros = clan_members_ros
+    
+    print(g.clan_members_ros)
+
+    await asyncio.sleep(1)
+
+    #west
+    clan_members_west = {
+        "tanroth": [],
+        "teza": [],
+        "magua": [],
+        "przyzy": [],
+        "lowka": [],
+        "zoons": [],
+        "arcy": [],
+        "renio": [],
+        "krolik": [],
+        "orla": []
+    }
+    clan_members_west = await get_clan_members(clan_members_west, "https://www.margonem.pl/guilds/view,Narwhals,1829")
+    g.clan_members_west = clan_members_west
+    print(g.clan_members_west)
+
+    
 
 
 
@@ -2295,6 +2380,16 @@ async def get_data_bans(df, world, link, page):
                 status = soup.find('div', class_='profile-header__status').string[1:-1]
             except:
                 status = None
+            if(status is None):
+                try:
+                    profile_data = soup.find('div', class_='profile-header-data-container')
+                    rep = profile_data.find_all('div', class_='profile-header-data')[5]
+                    rep = rep.find('div', class_='value').string
+                    print(rep)
+                except:
+                    rep = 0
+                if("-" in rep):
+                    status = "Ujemna reputacja"
             print(player_nickname + "|" + str(status))
             if(status is not None):
                 df_bans = df_bans.append({'Id':row['Id'], 'Nickname':player_nickname, 'Status':status}, ignore_index=True)
