@@ -29,6 +29,8 @@ async def on_startup():
     look_for_new_item.start()
     look_for_new_bans.start()
     present_new_bans.start()
+    daily_update_clan_members.start()
+    await u.update_clan_members()
 
 
 @slash_command(
@@ -754,6 +756,13 @@ async def present_new_bans():
 async def zagadka_delay():
     zagadka_delay.stop()
 
+@Task.create(interactions.TimeTrigger(hour=7, utc=False))
+async def daily_update_clan_members():
+    try:
+        await u.update_clan_members()
+    except:
+        pass
+
 
 @slash_command(
     name="online_wykres",
@@ -860,18 +869,10 @@ async def autocomplete(ctx: AutocompleteContext):
     description="Wypisuje w konsoli czlonkow kazdego z klanów na dany przedzial",
     scopes= [
         sd.dc_discord_bot_testy
-    ],
-    options = [
-        interactions.SlashCommandOption(
-            type=interactions.OptionType.STRING,
-            name="klan",
-            description="Nazwa klanu",
-            required=True,
-        ),
-    ],
+    ]
 )
-async def czlonkowie_klanow(ctx: SlashContext, klan: str):
-    await u.clan_members(ctx, klan)
+async def czlonkowie_klanow(ctx: SlashContext):
+    await u.update_clan_members()
 
 
 @slash_command(
