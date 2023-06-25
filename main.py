@@ -1719,5 +1719,50 @@ async def dodaj_wiadomosc_przez_ll(ctx: SlashContext, message: str):
         await ctx.send("Wystąpił błąd")
 
 
+@slash_command(
+    name="wycisz",
+    description="Wycisza powiadomienia o graczach online, maksymalnie 60 minut",
+    scopes= [
+        sd.dc_discord_bot_testy,
+        sd.dc_bod
+    ],
+    options = [
+        interactions.SlashCommandOption(
+            type=interactions.OptionType.INTEGER,
+            name="minuty",
+            description="Na ile minut wyciszyć bota",
+            required=True,
+            min_value=1,
+            max_value=60
+        ),
+    ],
+)
+async def wycisz(ctx: SlashContext, minuty: int):
+    if(g.is_muted == 1):
+        await ctx.send("Bot jest już wyciszony")
+        return
+    if(minuty == 1):
+        await ctx.send("Bot wyciszony na 1 minutę")
+    elif(minuty % 10 in (2, 3, 4)):
+        await ctx.send("Bot wyciszony na " + str(minuty) + " minuty")
+    else:
+        await ctx.send("Bot wyciszony na " + str(minuty) + " minut")
+    await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "wycisz")
+    await u.mute_bot(minuty)
+
+
+@slash_command(
+    name="odcisz",
+    description="Odcisza powiadomienia o graczach online",
+    scopes= [
+        sd.dc_discord_bot_testy,
+        sd.dc_bod
+    ],
+)
+async def odcisz(ctx: SlashContext):
+    g.is_muted = 0
+    await ctx.send("Bot odciszony")
+    await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "odcisz")
+
 
 bot.start(token = my_token)

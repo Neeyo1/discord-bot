@@ -929,7 +929,9 @@ async def players_online(ctx, swiat):
 
 
 async def players_online_run_forever(swiat):
-    #global g.df_players_online_run_forever, ros_tanroth, ros_teza, ros_magua, ros_przyzy, ros_lowka, ros_zoons, ros_arcy, ros_renio, ros_krolik, ros_orla, west_tanroth, west_teza, west_magua, west_przyzy, west_lowka, west_zoons, west_arcy, west_renio, west_krolik
+    if(g.is_muted):
+        print("Muted")
+        return
     ros_tanroth_count = 0
     ros_teza_count = 0
     ros_magua_count = 0
@@ -2418,4 +2420,9 @@ async def send_message_via_ll(ctx, message):
         return 1
     except:
         return 3
+    
+async def mute_bot(minutes):
+    g.is_muted = 1
+    await asyncio.sleep(minutes * 60)
+    g.is_muted = 0
     
