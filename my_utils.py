@@ -2244,8 +2244,11 @@ async def listen_for_new_items(link, clan):
                         os.remove("img/legendary/" + unidecode(who_cathced) + ".png")
                         #await channel_last_item.send(content=who_cathced + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(players) + "-osobowej")
                         print(who_cathced + " zdobył(a) " + item_catched + " z potwora " + mob_name + " w grupie " + str(len(players)) + "-osobowej")
+                        legendary_items_index = legendary_items.index(item_catched)
+                        del legendary_items[legendary_items_index]
+                        del legendary_items_links[legendary_items_index]
                         await asyncio.sleep(1)
-                if(len(soup2.find_all('p', class_='divide catcher')) == 0):
+                if(len(soup2.find_all('p', class_='divide catcher')) == 0 or len(legendary_items) > 0):
                     for item_catched in legendary_items:
                         item_link = legendary_items_links[legendary_items.index(item_catched)]
                         await generate_image_when_legendary("Nieznany ktoś", item_catched, mob_name, len(players), item_link, 0)

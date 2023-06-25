@@ -715,8 +715,8 @@ async def my_task():
 async def look_for_new_item():
     try:
         await u.listen_for_new_items("https://grooove.pl/blade_of_destiny_narwhals/", "bod")
-    except:
-        pass
+    except Exception as e:
+        print(e)
 
 @Task.create(interactions.TimeTrigger(hour=9, utc=False))
 async def look_for_new_bans():
