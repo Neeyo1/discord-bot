@@ -1,6 +1,6 @@
 import pandas as pd
 def init():
-    global bicia, uni, hera, legi, rok, TanrothLegi, TanrothHera, TanrothUni, wynikiNick, wynikiId, wynikiRN, wynikiProfil, wynikiRank, page, position, store, store_quiz_user, store_quiz_server, store_bans, has_quiz_started, quiz_cd, current_riddle, current_answer, quiz_task, quiz_number, channel_quiz, riddles, mob_lvl_heros, mob_lvl_tytan, mob_name_tytan, mob_name_e2, df_players_online_run_forever, clan_members_ros, clan_members_west, bot
+    global bicia, uni, hera, legi, rok, TanrothLegi, TanrothHera, TanrothUni, wynikiNick, wynikiId, wynikiRN, wynikiProfil, wynikiRank, page, position, store, store_quiz_user, store_quiz_server, store_bans, has_quiz_started, quiz_cd, current_riddle, current_answer, quiz_task, quiz_number, channel_quiz, riddles, mob_lvl_heros, mob_lvl_tytan, mob_name_tytan, mob_name_e2, df_players_online_run_forever, clan_members_ros, clan_members_west, bot, is_muted
 
     #lb
     bicia = 0
@@ -197,3 +197,6 @@ def init():
 
     #dc bot
     bot = None
+
+    #information about players online
+    is_muted = 0

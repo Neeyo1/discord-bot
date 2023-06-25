@@ -209,7 +209,7 @@ async def top(ctx: SlashContext, liczba: int):
     for x in range(int(liczba)):
         embed.add_field(name=g.wynikiRank[x] + ". " + g.wynikiNick[x] + "   id: " + g.wynikiId[x] + "   " + str(g.wynikiProfil[x]), value="RN: " + g.wynikiRN[x], inline=False)
     await ctx.send(embeds=embed)
-    await u.u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "top")
+    await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "top")
 
 @slash_command(
     name="find",
@@ -715,8 +715,8 @@ async def my_task():
 async def look_for_new_item():
     try:
         await u.listen_for_new_items("https://grooove.pl/blade_of_destiny_narwhals/", "bod")
-    except:
-        pass
+    except Exception as e:
+        print(e)
 
 @Task.create(interactions.TimeTrigger(hour=9, utc=False))
 async def look_for_new_bans():
@@ -1718,6 +1718,51 @@ async def dodaj_wiadomosc_przez_ll(ctx: SlashContext, message: str):
     elif(response == 3):
         await ctx.send("Wystąpił błąd")
 
+
+@slash_command(
+    name="wycisz",
+    description="Wycisza powiadomienia o graczach online, maksymalnie 60 minut",
+    scopes= [
+        sd.dc_discord_bot_testy,
+        sd.dc_bod
+    ],
+    options = [
+        interactions.SlashCommandOption(
+            type=interactions.OptionType.INTEGER,
+            name="minuty",
+            description="Na ile minut wyciszyć bota",
+            required=True,
+            min_value=1,
+            max_value=60
+        ),
+    ],
+)
+async def wycisz(ctx: SlashContext, minuty: int):
+    if(g.is_muted == 1):
+        await ctx.send("Bot jest już wyciszony")
+        return
+    if(minuty == 1):
+        await ctx.send("Bot wyciszony na 1 minutę")
+    elif(minuty % 10 in (2, 3, 4)):
+        await ctx.send("Bot wyciszony na " + str(minuty) + " minuty")
+    else:
+        await ctx.send("Bot wyciszony na " + str(minuty) + " minut")
+    await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "wycisz")
+    await u.mute_bot(minuty)
+
+
+@slash_command(
+    name="odcisz",
+    description="Odcisza powiadomienia o graczach online",
+    scopes= [
+        sd.dc_discord_bot_testy,
+        sd.dc_bod
+    ],
+)
+async def odcisz(ctx: SlashContext):
+    g.is_muted = 0
+    await ctx.send("Bot odciszony")
+    await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "odcisz")
 
 
 bot.start(token = my_token)
