@@ -209,7 +209,7 @@ async def top(ctx: SlashContext, liczba: int):
     for x in range(int(liczba)):
         embed.add_field(name=g.wynikiRank[x] + ". " + g.wynikiNick[x] + "   id: " + g.wynikiId[x] + "   " + str(g.wynikiProfil[x]), value="RN: " + g.wynikiRN[x], inline=False)
     await ctx.send(embeds=embed)
-    await u.u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "top")
+    await u.save_logs(ctx.guild_id, ctx.author.user.id, ctx.author.user.username, ctx.author.user.discriminator, "top")
 
 @slash_command(
     name="find",
