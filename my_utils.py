@@ -24,6 +24,7 @@ import json
 import math
 from asyncio import sleep
 from PIL import Image, ImageDraw, ImageFont
+from typing import Optional
 #from discord.ext import commands
 import interactions
 from interactions.ext.paginators import Paginator, Page
@@ -36,6 +37,30 @@ from googleapiclient.errors import HttpError
 
 import secret_data as sd
 import global_variables as g
+
+class My_Paginator(Paginator):
+    async def _on_button(self, ctx: interactions.ComponentContext, *args, **kwargs) -> Optional[interactions.Message]:
+        if self._timeout_task:
+            self._timeout_task.ping.set()
+        match ctx.custom_id.split("|")[1]:
+            case "first":
+                self.page_index = 0
+            case "last":
+                self.page_index = len(self.pages) - 1
+            case "next":
+                if (self.page_index + 1) < len(self.pages):
+                    self.page_index += 1
+            case "back":
+                if self.page_index >= 1:
+                    self.page_index -= 1
+            case "select":
+                self.page_index = int(ctx.values[0])
+            case "callback":
+                if self.callback:
+                    return await self.callback(ctx)
+
+        await ctx.edit_origin(**self.to_dict())
+        return None
 
 async def get_data(arg, argOrig):
     #global bicia, uni, hera, legi, rok
@@ -364,7 +389,7 @@ async def absency_df(ctx, world, df, current_daytime):
     embeds = [embed1, embed2, embed3, embed4]
     #paginator = Paginator.create_from_embeds(g.bot, *embeds, 15)
     my_title = "Lista 100 graczy z najdłuższą nieaktywnością na świecie " + world + ", stan na " + current_daytime[8:10] + "-" + current_daytime[5:7] + "-" + current_daytime[0:4] + " " + current_daytime[11:16]
-    paginator = Paginator(
+    paginator = My_Paginator(
         client = g.bot,
         pages=[
             Page(content=embed_value1, title = my_title).to_embed(),
