@@ -13,3 +13,5 @@ komendy.txt
 .venv/
 messenger.py
 maps/
+req.txt
+kalkulator.py
