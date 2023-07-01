@@ -474,6 +474,19 @@ async def check_data_in_db_absency_last(world, ctx):
             await absency_df(ctx, world, df2, str(res2)[2:-3])
             
             return False
+        
+async def get_data_in_db_absency(world, path = None):
+    if path is None:
+        path = 'database.db'
+    con = sqlite3.connect(path)
+    cur = con.cursor()
+    data = [world]
+    sql = ''' SELECT nickname, lvl, days_offline
+              FROM absency
+              WHERE world = ?'''
+    res = cur.execute(sql, data)
+    res2 = res.fetchall()
+    return res2
 
 
 async def update_data_in_db_absency(world, nickname, lvl, last_online):
@@ -919,6 +932,16 @@ async def add_data_in_db_last_item(clan, item_id):
     cur.execute(sql, data)
     con.commit()
 
+async def get_data_in_db_players_online_on_titans(path = 'database.db'):
+    con = sqlite3.connect(path)
+    cur = con.cursor()
+    sql = ''' SELECT clan, titan, GROUP_CONCAT(players)
+                FROM players_online_on_titans
+                GROUP BY clan, titan'''
+    res = cur.execute(sql)
+    res2 = res.fetchall()
+    return res2
+
 
 async def players_online(ctx, swiat):
     try:
@@ -957,25 +980,26 @@ async def players_online_run_forever(swiat):
     if(g.is_muted):
         print("Muted")
         return
-    ros_tanroth_count = 0
-    ros_teza_count = 0
-    ros_magua_count = 0
-    ros_przyzy_count = 0
-    ros_lowka_count = 0
-    ros_zoons_count = 0
-    ros_arcy_count = 0
-    ros_renio_count = 0
-    ros_krolik_count = 0
-    ros_orla_count = 0
-    west_tanroth_count = 0
-    west_teza_count = 0
-    west_magua_count = 0
-    west_przyzy_count = 0
-    west_lowka_count = 0
-    west_zoons_count = 0
-    west_arcy_count = 0
-    west_renio_count = 0
-    west_krolik_count = 0
+    ros_tanroth_count = []
+    ros_teza_count = []
+    ros_magua_count = []
+    ros_przyzy_count = []
+    ros_lowka_count = []
+    ros_zoons_count = []
+    ros_arcy_count = []
+    ros_renio_count = []
+    ros_krolik_count = []
+    ros_orla_count = []
+    west_tanroth_count = []
+    west_teza_count = []
+    west_magua_count = []
+    west_przyzy_count = []
+    west_lowka_count = []
+    west_zoons_count = []
+    west_arcy_count = []
+    west_renio_count = []
+    west_krolik_count = []
+    west_orla_count = []
 
     try:
         async with aiohttp.ClientSession() as session:
@@ -1000,43 +1024,43 @@ async def players_online_run_forever(swiat):
                 g.df_players_online_run_forever = g.df_players_online_run_forever.append({'Nickname':nickname, 'Minutes_online':int(1), 'Account_id':int(account_id), 'Char_id':int(char_id)}, ignore_index=True)
             if(True):
                 if(nickname in g.clan_members_ros["tanroth"]):
-                    ros_tanroth_count = ros_tanroth_count+1
+                    ros_tanroth_count.append(nickname)
                 if(nickname in g.clan_members_ros["teza"]):
-                    ros_teza_count = ros_teza_count+1
+                    ros_teza_count.append(nickname)
                 if(nickname in g.clan_members_ros["magua"]):
-                    ros_magua_count = ros_magua_count+1
+                    ros_magua_count.append(nickname)
                 if(nickname in g.clan_members_ros["przyzy"]):
-                    ros_przyzy_count = ros_przyzy_count+1
-                #if(nickname in g.clan_members_ros["lowka"]):
-                #    ros_lowka_count = ros_lowka_count+1
+                    ros_przyzy_count.append(nickname)
+                if(nickname in g.clan_members_ros["lowka"]):
+                    ros_lowka_count.append(nickname)
                 if(nickname in g.clan_members_ros["zoons"]):
-                    ros_zoons_count = ros_zoons_count+1
-                #if(nickname in g.clan_members_ros["arcy"]):
-                #    ros_arcy_count = ros_arcy_count+1
+                    ros_zoons_count.append(nickname)
+                if(nickname in g.clan_members_ros["arcy"]):
+                    ros_arcy_count.append(nickname)
                 if(nickname in g.clan_members_ros["renio"]):
-                    ros_renio_count = ros_renio_count+1
-                #if(nickname in g.clan_members_ros["krolik"]):
-                #    ros_krolik_count = ros_krolik_count+1
-                #if(nickname in g.clan_members_ros["orla"]):
-                #    ros_orla_count = ros_orla_count+1
+                    ros_renio_count.append(nickname)
+                if(nickname in g.clan_members_ros["krolik"]):
+                    ros_krolik_count.append(nickname)
+                if(nickname in g.clan_members_ros["orla"]):
+                    ros_orla_count.append(nickname)
                 if(nickname in g.clan_members_west["tanroth"]):
-                    west_tanroth_count = west_tanroth_count+1
+                    west_tanroth_count.append(nickname)
                 if(nickname in g.clan_members_west["teza"]):
-                    west_teza_count = west_teza_count+1
+                    west_teza_count.append(nickname)
                 if(nickname in g.clan_members_west["magua"]):
-                    west_magua_count = west_magua_count+1
+                    west_magua_count.append(nickname)
                 if(nickname in g.clan_members_west["przyzy"]):
-                    west_przyzy_count = west_przyzy_count+1
-                #if(nickname in g.clan_members_west["lowka"]):
-                #    west_lowka_count = west_lowka_count+1
+                    west_przyzy_count.append(nickname)
+                if(nickname in g.clan_members_west["lowka"]):
+                    west_lowka_count.append(nickname)
                 if(nickname in g.clan_members_west["zoons"]):
-                    west_zoons_count = west_zoons_count+1
-                #if(nickname in g.clan_members_west["arcy"]):
-                #    west_arcy_count = west_arcy_count+1
+                    west_zoons_count.append(nickname)
+                if(nickname in g.clan_members_west["arcy"]):
+                    west_arcy_count.append(nickname)
                 if(nickname in g.clan_members_west["renio"]):
-                    west_renio_count = west_renio_count+1
-                #if(nickname in g.clan_members_west["lowka"]):
-                #    west_krolik_count = west_krolik_count+1
+                    west_renio_count.append(nickname)
+                if(nickname in g.clan_members_west["orla"]):
+                    west_krolik_count.append(nickname)
         
         #print(g.df_players_online_run_forever)
         #print(ros_tanroth_count, ros_teza_count, ros_magua_count, ros_przyzy_count, ros_lowka_count, ros_zoons_count, ros_arcy_count, ros_renio_count, ros_krolik_count, ros_orla_count, west_tanroth_count, west_teza_count, west_magua_count, west_przyzy_count, west_lowka_count, west_zoons_count, west_arcy_count, west_renio_count, west_krolik_count)
@@ -1045,67 +1069,114 @@ async def players_online_run_forever(swiat):
         channel = g.bot.get_channel(channel_id=1081942227867140217)
 
         if(int(date_today.hour) >= 10):
-            if(ros_tanroth_count >= 7):
+            if(len(ros_tanroth_count) >= 7):
                 msg = "Możliwy Tanroth, " + str(ros_tanroth_count) + " rosów online"
                 await channel.send(content=msg)
         else:
-            if(ros_tanroth_count >= players_online_to_ping):
+            if(len(ros_tanroth_count) >= players_online_to_ping):
                 msg = "Możliwy Tanroth, " + str(ros_tanroth_count) + " rosów online"
                 await channel.send(content=msg)
-        if(ros_teza_count >= players_online_to_ping):
+        if(len(ros_teza_count) >= players_online_to_ping):
             msg = "Możliwa Teza, " + str(ros_teza_count) + " rosów online"
             await channel.send(content=msg)
-        if(ros_magua_count >= players_online_to_ping):
+        if(len(ros_magua_count) >= players_online_to_ping):
             msg = "Możliwy Magua, " + str(ros_magua_count) + " rosów online"
             await channel.send(content=msg)
-        if(ros_przyzy_count >= players_online_to_ping):
+        if(len(ros_przyzy_count) >= players_online_to_ping):
             msg = "Możliwy Przyzy, " + str(ros_przyzy_count) + " rosów online"
             await channel.send(content=msg)
-        #if(ros_lowka_count >= players_online_to_ping):
+        #if(len(ros_lowka_count) >= players_online_to_ping):
         #    msg = "Możliwa Łowka, " + str(ros_lowka_count) + " rosów online"
         #    await channel.send(content=msg)
-        if(ros_zoons_count >= players_online_to_ping):
+        if(len(ros_zoons_count) >= players_online_to_ping):
             msg = "Możliwy(a) Zoons/Łowka, " + str(ros_zoons_count) + " rosów online"
             await channel.send(content=msg)
-        #if(ros_arcy_count >= players_online_to_ping):
+        #if(len(ros_arcy_count) >= players_online_to_ping):
         #    msg = "Możliwy Arcy, " + str(ros_arcy_count) + " rosów online"
         #    await channel.send(content=msg)
-        if(ros_renio_count >= 4):
+        if(len(ros_renio_count) >= 4):
             msg = "Możliwy Renio, " + str(ros_renio_count) + " rosów online"
             await channel.send(content=msg)
-        #if(ros_krolik_count >= players_online_to_ping):
+        #if(len(ros_krolik_count) >= players_online_to_ping):
         #    msg = "Możliwy Kr ólik, " + str(ros_krolik_count) + " rosów online"
         #    await channel.send(content=msg)
-        #if(ros_orla_count >= players_online_to_ping):
+        #if(len(ros_orla_count) >= players_online_to_ping):
         #    msg = "Możliwa Orla, " + str(ros_orla_count) + " rosów online"
         #    await channel.send(content=msg)
-        if(west_tanroth_count >= players_online_to_ping):
+        if(len(west_tanroth_count) >= players_online_to_ping):
             msg = "Możliwy Tanroth, " + str(west_tanroth_count) + " westów online"
             await channel.send(content=msg)
-        if(west_teza_count >= players_online_to_ping):
+        if(len(west_teza_count) >= players_online_to_ping):
             msg = "Możliwa Teza, " + str(west_teza_count) + " westów online"
             await channel.send(content=msg)
-        if(west_magua_count >= players_online_to_ping):
+        if(len(west_magua_count) >= players_online_to_ping):
             msg = "Możliwy Magua, " + str(west_magua_count) + " westów online"
             await channel.send(content=msg)
-        if(west_przyzy_count >= players_online_to_ping):
+        if(len(west_przyzy_count) >= players_online_to_ping):
             msg = "Możliwy Przyzy, " + str(west_przyzy_count) + " westów online"
             await channel.send(content=msg)
-        #if(west_lowka_count >= players_online_to_ping):
+        #if(len(west_lowka_count) >= players_online_to_ping):
         #    msg = "Możliwa Łowka, " + str(west_lowka_count) + " westów online"
         #    await channel.send(content=msg)
-        if(west_zoons_count >= players_online_to_ping):
+        if(len(west_zoons_count) >= players_online_to_ping):
             msg = "Możliwy(a) Zoons/Łowka, " + str(west_zoons_count) + " westów online"
             await channel.send(content=msg)
-        #if(west_arcy_count >= players_online_to_ping):
+        #if(len(west_arcy_count) >= players_online_to_ping):
         #    msg = "Możliwy Arcy, " + str(west_arcy_count) + " westów online"
         #    await channel.send(content=msg)
-        if(west_renio_count >= players_online_to_ping):
+        if(len(west_renio_count) >= players_online_to_ping):
             msg = "Możliwy Renio, " + str(west_renio_count) + " westów online"
             await channel.send(content=msg)
-        #if(west_krolik_count >= players_online_to_ping):
+        #if(len(west_krolik_count) >= players_online_to_ping):
         #    msg = "Możliwy Królik, " + str(west_krolik_count) + " westów online"
         #    await channel.send(content=msg)
+
+        clan_members_online = {
+            'ros': {
+                'tanroth': ros_tanroth_count,
+                'teza': ros_teza_count,
+                'magua': ros_magua_count,
+                'przyzy': ros_przyzy_count,
+                'lowka': ros_lowka_count,
+                'zoons': ros_zoons_count,
+                'arcy': ros_arcy_count,
+                'renio': ros_renio_count,
+                'krolik': ros_krolik_count,
+                'orla': ros_orla_count
+            },
+            'west': {
+                'tanroth': west_tanroth_count,
+                'teza': west_teza_count,
+                'magua': west_magua_count,
+                'przyzy': west_przyzy_count,
+                'lowka': west_lowka_count,
+                'zoons': west_zoons_count,
+                'arcy': west_arcy_count,
+                'renio': west_renio_count,
+                'krolik': west_krolik_count,
+                'orla': west_orla_count
+            }
+        }
+
+        path = 'database.db'
+        con = sqlite3.connect(path)
+        cur = con.cursor()
+        try:
+            sql = ''' DELETE FROM players_online_on_titans'''
+            cur.execute(sql)
+            con.commit()
+        except Exception as e:
+            print(e)
+            cur.execute("CREATE TABLE players_online_on_titans(clan, titan, players)")
+
+        for clan in clan_members_online:
+            for titan in clan_members_online[clan]:
+                for players in clan_members_online[clan][titan]:
+                    data = (clan, titan, players)
+                    sql = ''' INSERT INTO players_online_on_titans(clan, titan, players)
+                            VALUES(?, ?, ?)'''
+                    cur.execute(sql, data)
+                    con.commit()
 
         if(int(date_today.minute) == 59):
             #Zapis do bazy
@@ -2451,3 +2522,5 @@ async def mute_bot(minutes):
     await asyncio.sleep(minutes * 60)
     g.is_muted = 0
     
+async def ret_clan_members_online():
+    return g.clan_members_online
