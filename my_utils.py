@@ -1426,6 +1426,59 @@ async def get_clan_members(clan_members, klan_url):
 
             #print(nickname, lvl, len(nickname), len(str(lvl)))
 
+async def get_clan_members_kolos(clan_members, klan_url):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(klan_url) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
+    table = soup.find('table', class_='table--separators w-100')
+    table = table.find('tbody')
+
+    try:
+        length = len(table.find_all('tr'))
+    except:
+        length = 0
+    if(length>1):
+        for i in table.find_all('tr'):
+            data = i.find_all("td")
+            nickname = data[1].a.string[10:-8]
+            lvl = int(data[2].string[9:-7])
+            prof = data[3].string[9:-7]
+            if prof == "Łowca":
+                prof = "h"
+            elif prof == "Tropiciel":
+                prof = "t"
+            elif prof == "Wojownik":
+                prof = "w"
+            elif prof == "Paladyn":
+                prof = "p"
+            elif prof == "Mag":
+                prof = "m"
+            elif prof == "Tancerz ostrzy":
+                prof = "b"    
+
+            if(lvl >= 279-13):
+                clan_members[279].append(nickname + " (" + str(lvl) + prof + ")")
+            elif(lvl >= 252-13):
+                clan_members[252].append(nickname + " (" + str(lvl) + prof + ")")
+            elif(lvl >= 225-13):
+                clan_members[225].append(nickname + " (" + str(lvl) + prof + ")")
+            elif(lvl >= 198-13):
+                clan_members[198].append(nickname + " (" + str(lvl) + prof + ")")
+            elif(lvl >= 171-13):
+                clan_members[171].append(nickname + " (" + str(lvl) + prof + ")")
+            elif(lvl >= 144-13):
+                clan_members[144].append(nickname + " (" + str(lvl) + prof + ")")
+            elif(lvl >= 117-13):
+                clan_members[117].append(nickname + " (" + str(lvl) + prof + ")")
+            elif(lvl >= 90-13):
+                clan_members[90].append(nickname + " (" + str(lvl) + prof + ")")
+            elif(lvl >= 63-13):
+                clan_members[63].append(nickname + " (" + str(lvl) + prof + ")")
+            elif(lvl >= 36-13):
+                clan_members[36].append(nickname + " (" + str(lvl) + prof + ")")
+    
+    return clan_members
+
 
 async def update_clan_members():
     #ros
@@ -1466,6 +1519,46 @@ async def update_clan_members():
     clan_members_west = await get_clan_members(clan_members_west, "https://www.margonem.pl/guilds/view,Narwhals,1829")
     g.clan_members_west = clan_members_west
     print(g.clan_members_west)
+
+    await asyncio.sleep(1)
+
+    clan_members_bod = {
+        "tanroth": [],
+        "teza": [],
+        "magua": [],
+        "przyzy": [],
+        "lowka": [],
+        "zoons": [],
+        "arcy": [],
+        "renio": [],
+        "krolik": [],
+        "orla": []
+    }
+    clan_members_bod = await get_clan_members(clan_members_bod, "https://www.margonem.pl/guilds/view,Narwhals,1834")
+    await asyncio.sleep(1)
+    clan_members_bod = await get_clan_members(clan_members_bod, "https://www.margonem.pl/guilds/view,Narwhals,1912")
+    
+    print(clan_members_bod)
+
+    await asyncio.sleep(1)
+
+    clan_members_bod = {
+        279: [],
+        252: [],
+        225: [],
+        198: [],
+        171: [],
+        144: [],
+        117: [],
+        90: [],
+        63: [],
+        36: []
+    }
+    clan_members_bod = await get_clan_members_kolos(clan_members_bod, "https://www.margonem.pl/guilds/view,Narwhals,1834")
+    await asyncio.sleep(1)
+    clan_members_bod = await get_clan_members_kolos(clan_members_bod, "https://www.margonem.pl/guilds/view,Narwhals,1912")
+    
+    print(clan_members_bod)
 
     
 
