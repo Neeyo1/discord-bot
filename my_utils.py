@@ -1411,7 +1411,7 @@ async def get_clan_members(clan_members, klan_url):
                 clan_members['przyzy'].append(nickname)
             if(lvl >= 164 and lvl <= 190):
                 clan_members['lowka'].append(nickname)
-            if(lvl >= 145 and lvl <= 167):
+            if(lvl >= 141 and lvl <= 167):
                 clan_members['zoons'].append(nickname)
             if(lvl >= 118 and lvl <= 144):
                 clan_members['arcy'].append(nickname)
