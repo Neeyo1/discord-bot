@@ -1480,6 +1480,54 @@ async def get_clan_members_kolos(clan_members, klan_url):
     return clan_members
 
 
+async def get_clan_members_kolos_eve(clan_members, klan_url):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(klan_url) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
+    table = soup.find('table', class_='table--separators w-100')
+    table = table.find('tbody')
+
+    try:
+        length = len(table.find_all('tr'))
+    except:
+        length = 0
+    if(length>1):
+        for i in table.find_all('tr'):
+            data = i.find_all("td")
+            nickname = data[1].a.string[10:-8]
+            lvl = int(data[2].string[9:-7])
+            prof = data[3].string[9:-7]
+            if prof == "Łowca":
+                prof = "h"
+            elif prof == "Tropiciel":
+                prof = "t"
+            elif prof == "Wojownik":
+                prof = "w"
+            elif prof == "Paladyn":
+                prof = "p"
+            elif prof == "Mag":
+                prof = "m"
+            elif prof == "Tancerz ostrzy":
+                prof = "b"    
+
+            if(lvl >= 270-14):
+                clan_members[270].append(nickname + " (" + str(lvl) + prof + ")")
+            elif(lvl >= 230-14):
+                clan_members[230].append(nickname + " (" + str(lvl) + prof + ")")
+            elif(lvl >= 190-14):
+                clan_members[190].append(nickname + " (" + str(lvl) + prof + ")")
+            elif(lvl >= 150-14):
+                clan_members[150].append(nickname + " (" + str(lvl) + prof + ")")
+            elif(lvl >= 110-14):
+                clan_members[110].append(nickname + " (" + str(lvl) + prof + ")")
+            elif(lvl >= 70-14):
+                clan_members[70].append(nickname + " (" + str(lvl) + prof + ")")
+            elif(lvl >= 30-14):
+                clan_members[30].append(nickname + " (" + str(lvl) + prof + ")")
+    
+    return clan_members
+
+
 async def update_clan_members():
     #ros
     clan_members_ros = {
@@ -1560,7 +1608,17 @@ async def update_clan_members():
     
     print(clan_members_bod)
 
-    
+    clan_members_invicta = {
+        270: [],
+        230: [],
+        190: [],
+        150: [],
+        110: [],
+        70: [],
+        30: []
+    }
+    clan_members_invicta = await get_clan_members_kolos_eve(clan_members_invicta, "https://www.margonem.pl/guilds/view,Legion,23")
+    print(clan_members_invicta)
 
 
 
